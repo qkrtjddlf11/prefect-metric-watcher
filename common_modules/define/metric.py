@@ -17,3 +17,9 @@ class MetricType(Enum):
     SWAP = 10
     SYSTEM_LOAD5 = 11
     NETSTAT_TCP_ESTABLISHED = 12
+
+
+class EvalType(Enum):
+    XXX = 1
+    YYY = 2
+    COMMON = 3
