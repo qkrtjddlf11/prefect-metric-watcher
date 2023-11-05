@@ -52,9 +52,6 @@ class InfluxDBConnection:
         finally:
             self.conn.close()
 
-    def get_metric_data(self):
-        self._close_connection()
-
     def generate_sql_statements(self):
         pass
 

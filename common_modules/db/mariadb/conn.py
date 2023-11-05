@@ -7,6 +7,13 @@ from contextlib import contextmanager
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import sessionmaker
 
+from common_modules.db.mariadb.metric_watcher_base import (
+    TCodeEvalOperatorType,
+    TCodeEvalType,
+    TCodeMetricType,
+    TMetricEvalThreshold,
+)
+
 
 class MariaDBConnection:
     """
@@ -43,3 +50,38 @@ class MariaDBConnection:
             raise e
         finally:
             session.close()  # 세션 닫기
+
+    def implement_query(self, metric_type_seq: int, eval_type_seq):
+        with self.get_resources() as session:
+            query = (
+                session.query(
+                    TMetricEvalThreshold.metric_type_seq,
+                    TCodeMetricType.name,
+                    TMetricEvalThreshold.eval_value,
+                    TMetricEvalThreshold.eval_operator_type_seq,
+                    TCodeEvalOperatorType.name,
+                )
+                .select_from(TMetricEvalThreshold)
+                .join(
+                    TCodeEvalType, TMetricEvalThreshold.eval_type_seq == TCodeEvalType.eval_type_seq
+                )
+                .join(
+                    TCodeMetricType,
+                    TMetricEvalThreshold.metric_type_seq == TCodeMetricType.metric_type_seq,
+                )
+                .join(
+                    TCodeEvalOperatorType,
+                    TMetricEvalThreshold.eval_operator_type_seq
+                    == TCodeEvalOperatorType.eval_operator_type_seq,
+                )
+                .filter(TMetricEvalThreshold.metric_type_seq == metric_type_seq)
+                .filter(TMetricEvalThreshold.eval_type_seq == eval_type_seq)
+            )
+
+            print("=============== Query Statement Start ================")
+            print(query.statement)
+            print("=============== End Query Statement ================")
+
+            threshold_value = query.all()
+            print("threshold_value :", threshold_value)
+            return threshold_value

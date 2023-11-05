@@ -15,11 +15,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.db.influxdb.conn import InfluxDBConnection
 from common_modules.db.mariadb.conn import MariaDBConnection
-from common_modules.db.mariadb.metric_watcher_base import (
-    TCodeEvalType,
-    TCodeMetricType,
-    TMetricEvalThreshold,
-)
 from common_modules.define.metric import EvalType, MetricType
 
 BASE_CONFIG_PATH = "config/config_dev.yaml"
@@ -29,7 +24,12 @@ CPU_USAGE_PERCENT = "usage_percent"
 CPU_QUERY = """SELECT time, host, (100 - usage_idle) as usage_percent FROM cpu WHERE time > now() - 2m AND time <= now() - 1m  GROUP BY host limit 1"""
 
 
-def metric_cpu_flow(metric_type_seq: int):
+# TODO MetricCPU Class 정의 필요
+class MetricCPU:
+    pass
+
+
+def metric_cpu_flow() -> None:
     logger = logging.getLogger("")
 
     logger.info("Network: %s. ✅", node())
@@ -61,32 +61,19 @@ def metric_cpu_flow(metric_type_seq: int):
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
 
-    with mariadb_connection.get_resources() as session:
-        query = (
-            session.query(TMetricEvalThreshold.eval_value)
-            .select_from(TMetricEvalThreshold)
-            .join(TCodeEvalType, TMetricEvalThreshold.eval_type_seq == TCodeEvalType.eval_type_seq)
-            .join(
-                TCodeMetricType,
-                TMetricEvalThreshold.metric_type_seq == TCodeMetricType.metric_type_seq,
-            )
-            .filter(TMetricEvalThreshold.metric_type_seq == metric_type_seq)
-            .filter(TMetricEvalThreshold.eval_type_seq == EvalType.COMMON.value)
-        )
+    threshold_value = mariadb_connection.implement_query(
+        MetricType.CPU.value, EvalType.COMMON.value
+    )
 
-        print("=============== Query Statement Start ================")
-        print(query.statement)
-        print("=============== End Query Statement ================")
-
-        threshold_value = query.all()[0][0]
-
+    alert_host_list = []
     for point in metric_points:
-        if point.get(CPU_USAGE_PERCENT) > threshold_value:
+        if point.get(CPU_USAGE_PERCENT) > threshold_value[0][2]:
             print("Alert! ", point)
+            alert_host_list.append(point)
 
     # TODO Alert 발송
     logger.info("Alert Send!")
 
 
 if __name__ == "__main__":
-    metric_cpu_flow(MetricType.CPU.value)
+    metric_cpu_flow()

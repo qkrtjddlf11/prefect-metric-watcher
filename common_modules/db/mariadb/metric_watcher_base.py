@@ -18,7 +18,7 @@ class TCodeEvalType(Base):
     name = Column(String(100), nullable=False, comment="Evaluate Name")
 
     # TMetricEvalThreshold 모델과의 관계 설정
-    t_metric_eval_thresholds = relationship(
+    t_metric_eval_threshold = relationship(
         "TMetricEvalThreshold", back_populates="t_code_eval_type"
     )
 
@@ -33,7 +33,7 @@ class TCodeMetricType(Base):
     name = Column(String(100), nullable=False, comment="Metric Name")
 
     # TMetricEvalThreshold 모델과의 관계 설정
-    t_metric_eval_thresholds = relationship(
+    t_metric_eval_threshold = relationship(
         "TMetricEvalThreshold", back_populates="t_code_metric_type"
     )
 
@@ -58,8 +58,33 @@ class TMetricEvalThreshold(Base):
         comment="Evaluate Type Sequence",
     )
     svr_vrc_list = Column(String(100), comment="SVR_VRC List")
+    eval_operator_type_seq = Column(
+        Integer,
+        ForeignKey("t_code_eval_operator_type.eval_operator_type_seq"),
+        nullable=False,
+        comment="Evaluate Operator Type Sequence",
+    )
     eval_value = Column(Integer, nullable=False, comment="임계치")
 
     # 외래 키로 연결된 테이블과의 관계 설정
-    t_code_eval_type = relationship("TCodeEvalType", back_populates="t_metric_eval_thresholds")
-    t_code_metric_type = relationship("TCodeMetricType", back_populates="t_metric_eval_thresholds")
+    t_code_eval_type = relationship("TCodeEvalType", back_populates="t_metric_eval_threshold")
+    t_code_metric_type = relationship("TCodeMetricType", back_populates="t_metric_eval_threshold")
+    t_code_eval_operator_type = relationship(
+        "TCodeEvalOperatorType", back_populates="t_metric_eval_threshold"
+    )
+
+
+# EvalOperatorType 클래스 정의
+class TCodeEvalOperatorType(Base):
+    __tablename__ = "t_code_eval_operator_type"
+
+    eval_operator_type_seq = Column(
+        Integer, primary_key=True, autoincrement=True, comment="Evaluate Operator Type Sequence"
+    )
+    name = Column(String(100), nullable=False, comment="Evaluate Operator Name")
+    eval_operator = Column(String(100), nullable=False, comment="Evaluate Operator")
+
+    # TMetricEvalThreshold 모델과의 관계 설정
+    t_metric_eval_threshold = relationship(
+        "TMetricEvalThreshold", back_populates="t_code_eval_operator_type"
+    )
