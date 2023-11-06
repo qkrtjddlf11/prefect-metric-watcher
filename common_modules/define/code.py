@@ -23,3 +23,10 @@ class EvalType(Enum):
     XXX = 1
     YYY = 2
     COMMON = 3
+
+
+class MethodOperatorType(Enum):
+    LT = 1
+    LTE = 2
+    GT = 3
+    GTE = 4

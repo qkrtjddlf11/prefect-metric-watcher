@@ -3,8 +3,9 @@
 
 
 from contextlib import contextmanager
+from typing import List, Tuple
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, Row, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from common_modules.db.mariadb.metric_watcher_base import (
@@ -51,7 +52,9 @@ class MariaDBConnection:
         finally:
             session.close()  # 세션 닫기
 
-    def implement_query(self, metric_type_seq: int, eval_type_seq):
+    def implement_query(
+        self, metric_type_seq: int, eval_type_seq
+    ) -> List[Row[Tuple[int, str, int, int, str]]]:
         with self.get_resources() as session:
             query = (
                 session.query(
@@ -82,6 +85,4 @@ class MariaDBConnection:
             print(query.statement)
             print("=============== End Query Statement ================")
 
-            threshold_value = query.all()
-            print("threshold_value :", threshold_value)
-            return threshold_value
+            return query.all()
