@@ -57,7 +57,7 @@ class InfluxDBConnection:
 
     def __str__(self) -> str:
         return (
-            f"Connection Info :\n"
+            "Connection Info :\n"
             + f"\thost={self.host}\n"
             + f"\tport={self.port}\n"
             + f"\tusername={self.username}\n"

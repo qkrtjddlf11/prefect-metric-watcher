@@ -69,7 +69,9 @@ def metric_cpu_flow() -> None:
         logger.error("Yaml load Error : %s", str(err))
         raise
 
-    influx = InfluxDBConnection(logger, *yaml_config.get_all_config().get("INFLUXDB").values())
+    influx = InfluxDBConnection(
+        logger, *yaml_config.get_all_config().get("INFLUXDB").values()
+    )
 
     # TODO InfluxDB 데이터 조회
     with influx.get_resource() as conn:
@@ -86,7 +88,9 @@ def metric_cpu_flow() -> None:
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
 
-    results = mariadb_connection.implement_query(MetricType.CPU.value, EvalType.COMMON.value)
+    results = mariadb_connection.implement_query(
+        MetricType.CPU.value, EvalType.COMMON.value
+    )
     for result in results:
         metric_cpu = MetricCPU(*result)
 

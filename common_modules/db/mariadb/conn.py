@@ -22,7 +22,13 @@ class MariaDBConnection:
     """
 
     def __init__(
-        self, logger, host="localhost", port=3306, user="root", password="root", db="metric_watcher"
+        self,
+        logger,
+        host="localhost",
+        port=3306,
+        user="root",
+        password="root",
+        db="metric_watcher",
     ) -> None:
         self.logger = logger
         self.user = user
@@ -66,11 +72,13 @@ class MariaDBConnection:
                 )
                 .select_from(TMetricEvalThreshold)
                 .join(
-                    TCodeEvalType, TMetricEvalThreshold.eval_type_seq == TCodeEvalType.eval_type_seq
+                    TCodeEvalType,
+                    TMetricEvalThreshold.eval_type_seq == TCodeEvalType.eval_type_seq,
                 )
                 .join(
                     TCodeMetricType,
-                    TMetricEvalThreshold.metric_type_seq == TCodeMetricType.metric_type_seq,
+                    TMetricEvalThreshold.metric_type_seq
+                    == TCodeMetricType.metric_type_seq,
                 )
                 .join(
                     TCodeEvalOperatorType,

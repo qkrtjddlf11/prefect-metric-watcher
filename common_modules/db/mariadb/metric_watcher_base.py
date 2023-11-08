@@ -43,7 +43,10 @@ class TMetricEvalThreshold(Base):
     __tablename__ = "t_metric_eval_threshold"
 
     metric_eval_threshold_seq = Column(
-        Integer, primary_key=True, autoincrement=True, comment="Individual Metric Sequence"
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        comment="Individual Metric Sequence",
     )
     metric_type_seq = Column(
         Integer,
@@ -67,8 +70,12 @@ class TMetricEvalThreshold(Base):
     eval_value = Column(Integer, nullable=False, comment="임계치")
 
     # 외래 키로 연결된 테이블과의 관계 설정
-    t_code_eval_type = relationship("TCodeEvalType", back_populates="t_metric_eval_threshold")
-    t_code_metric_type = relationship("TCodeMetricType", back_populates="t_metric_eval_threshold")
+    t_code_eval_type = relationship(
+        "TCodeEvalType", back_populates="t_metric_eval_threshold"
+    )
+    t_code_metric_type = relationship(
+        "TCodeMetricType", back_populates="t_metric_eval_threshold"
+    )
     t_code_eval_operator_type = relationship(
         "TCodeEvalOperatorType", back_populates="t_metric_eval_threshold"
     )
@@ -79,7 +86,10 @@ class TCodeEvalOperatorType(Base):
     __tablename__ = "t_code_eval_operator_type"
 
     eval_operator_type_seq = Column(
-        Integer, primary_key=True, autoincrement=True, comment="Evaluate Operator Type Sequence"
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        comment="Evaluate Operator Type Sequence",
     )
     name = Column(String(100), nullable=False, comment="Evaluate Operator Name")
     eval_operator = Column(String(100), nullable=False, comment="Evaluate Operator")

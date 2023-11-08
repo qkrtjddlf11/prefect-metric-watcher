@@ -6,7 +6,7 @@
     "python.linting.pylintArgs": [
         "--generate-members",
         "--init-hook",
-        "import sys; sys.path.append('/Users/sungil.park/project/python/metric-watcher')"
+        "import sys; sys.path.append('/Users/sungil.park/project/python/prefect-metric-watcher')"
     ],
     "python.formatting.blackArgs": [
         "--line-length",
