@@ -7,11 +7,15 @@ import os
 import sys
 from platform import node, platform
 
+from prefect import context, flow, get_run_logger
+from prefect.runtime import flow_run
+from prefect.task_runners import SequentialTaskRunner
 from requests import exceptions
 from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
+from common_modules.common.util import create_basetime
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.data.comparison_operator import OperatorMapping
 from common_modules.db.influxdb.conn import InfluxDBConnection
@@ -19,6 +23,7 @@ from common_modules.db.mariadb.conn import MariaDBConnection
 from common_modules.define.code import EvalType, MetricType
 
 BASE_CONFIG_PATH = "config/config_dev.yaml"
+METRIC_CPU_NAME = "prefect_metric_cpu_scheduler"
 CPU_USAGE_PERCENT = "usage_percent"
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
@@ -54,6 +59,32 @@ class MetricCPU:
         )
 
 
+def generate_flow_run_name() -> str:
+    logger = get_run_logger()
+
+    flow_run_name_datetime = create_basetime(
+        logger, context.get_run_context().flow_run.expected_start_time
+    )
+    flow_run_name = f"{flow_run.flow_name}-{flow_run_name_datetime:%Y%m%d}-{flow_run_name_datetime:%H%M%S}"
+
+    logger.info(
+        "flow_run_id: %s, flow_run_deployment_id: %s, flow_run_name: %s ✅",
+        context.get_run_context().flow_run.flow_id,
+        context.get_run_context().flow_run.deployment_id,
+        flow_run_name,
+    )
+    return flow_run_name
+
+
+@flow(
+    name=METRIC_CPU_NAME,
+    flow_run_name=generate_flow_run_name,
+    retries=3,
+    retry_delay_seconds=5,
+    description="Prefect agent module for CPU usage",
+    timeout_seconds=5,
+    task_runner=SequentialTaskRunner(),
+)
 def metric_cpu_flow() -> None:
     logger = logging.getLogger("")
 
@@ -88,7 +119,7 @@ def metric_cpu_flow() -> None:
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
 
-    results = mariadb_connection.implement_query(
+    results = mariadb_connection.sql_get_metric_eval_threshold_list(
         MetricType.CPU.value, EvalType.COMMON.value
     )
     for result in results:
