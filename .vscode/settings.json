@@ -30,4 +30,5 @@
         "editor.defaultFormatter": "vscode.json-language-features"
     },
     "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "off",
 }
