@@ -33,7 +33,6 @@ CPU_QUERY = """SELECT time, host, (100 - usage_idle) as usage_percent
                 GROUP BY host limit 1"""
 
 
-# TODO MetricCPU Class 정의 필요
 class MetricCPU:
     def __init__(
         self,
@@ -73,6 +72,7 @@ def generate_flow_run_name() -> str:
         context.get_run_context().flow_run.deployment_id,
         flow_run_name,
     )
+
     return flow_run_name
 
 

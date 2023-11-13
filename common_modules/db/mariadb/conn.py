@@ -58,6 +58,9 @@ class MariaDBConnection:
         finally:
             session.close()  # 세션 닫기
 
+    def execute_sessin_query(self, query, *args, **kwargs):
+        pass
+
     def sql_get_metric_eval_threshold_list(
         self, metric_type_seq: int, eval_type_seq
     ) -> List[Row[Tuple[int, str, int, int, str]]]:

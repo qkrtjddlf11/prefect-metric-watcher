@@ -30,3 +30,9 @@ class MethodOperatorType(Enum):
     LTE = 2
     GT = 3
     GTE = 4
+
+
+class EvalResultType(Enum):
+    OK = 1
+    ALERT = 2
+    SNOOZE = 3
