@@ -15,9 +15,11 @@ from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
+from common_modules.common.base_impl import Metric
 from common_modules.common.util import create_basetime
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.data.comparison_operator import OperatorMapping
+from common_modules.data.data_velidator import verify_data
 from common_modules.db.influxdb.conn import InfluxDBConnection
 from common_modules.db.mariadb.conn import MariaDBConnection
 from common_modules.define.code import EvalType, MetricType
@@ -31,31 +33,6 @@ CPU_QUERY = """SELECT time, host, (100 - usage_idle) as usage_percent
                 FROM cpu 
                 WHERE time > now() - 2m AND time <= now() - 1m
                 GROUP BY host limit 1"""
-
-
-class MetricCPU:
-    def __init__(
-        self,
-        metric_type_seq: int = 0,
-        metric_name: str = "",
-        eval_value: int = 0,
-        eval_operator_type_seq: int = 0,
-        operator_name: str = "",
-    ) -> None:
-        self.metric_type_seq = metric_type_seq
-        self.metric_name = metric_name
-        self.eval_value = eval_value
-        self.eval_operator_type_seq = eval_operator_type_seq
-        self.operator_name = operator_name
-
-    def __str__(self) -> str:
-        return (
-            f"MetricCPU(metric_type_seq={self.metric_type_seq}, "
-            + f"metric_name={self.metric_name}, "
-            + f"eval_value={self.eval_value}, "
-            + f"eval_operator_type_seq={self.eval_operator_type_seq}, "
-            + f"operator_name={self.operator_name})"
-        )
 
 
 def generate_flow_run_name() -> str:
@@ -86,7 +63,7 @@ def generate_flow_run_name() -> str:
     task_runner=SequentialTaskRunner(),
 )
 def metric_cpu_flow() -> None:
-    logger = logging.getLogger("")
+    logger = get_run_logger()
 
     logger.info("Network: %s. ✅", node())
     logger.info("Instance: %s. ✅", platform())
@@ -123,19 +100,22 @@ def metric_cpu_flow() -> None:
         MetricType.CPU.value, EvalType.COMMON.value
     )
     for result in results:
-        metric_cpu = MetricCPU(*result)
+        metric_cpu = Metric(*result)
 
-    alert_host_list = []
-    for point in metric_points:
-        if OperatorMapping.get(metric_cpu.eval_operator_type_seq).compare(
-            point.get("usage_percent"), metric_cpu.eval_value
-        ):
-            print(point)
-            logger.info(point)
-            alert_host_list.append(point)
+    if not verify_data(logger, metric_cpu):
+        logger.error("Invalid data : %s", metric_cpu)
+    else:
+        alert_host_list = []
+        for point in metric_points:
+            if OperatorMapping.get(metric_cpu.eval_operator_type_seq).compare(
+                point.get("usage_percent"), metric_cpu.eval_value
+            ):
+                print(point)
+                logger.info(point)
+                alert_host_list.append(point)
 
-    # TODO Alert 발송
-    logger.info("Alert Send!")
+        # TODO Alert 발송
+        logger.info("Alert Send!")
 
 
 if __name__ == "__main__":

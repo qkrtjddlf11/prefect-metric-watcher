@@ -58,6 +58,7 @@ class MariaDBConnection:
         finally:
             session.close()  # 세션 닫기
 
+    # TODO 공통 쿼리 만들기
     def execute_sessin_query(self, query, *args, **kwargs):
         pass
 
