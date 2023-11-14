@@ -98,3 +98,40 @@ class TCodeEvalOperatorType(Base):
     t_metric_eval_threshold = relationship(
         "TMetricEvalThreshold", back_populates="t_code_eval_operator_type"
     )
+
+
+# MetricEvalHistory 클래스 정의
+class TMetricEvalHistory(Base):
+    __tablename__ = "t_metric_eval_history"
+
+    metric_eval_history_seq = Column(Integer, primary_key=True, autoincrement=True)
+    metric_eval_threshold_seq = Column(
+        Integer,
+        ForeignKey("t_metric_eval_threshold.metric_eval_threshold_seq"),
+        nullable=False,
+    )
+    metric_eval_result_seq = Column(
+        Integer,
+        ForeignKey("t_code_metric_eval_result_type.metric_eval_result_seq"),
+        nullable=False,
+    )
+
+    # 외래 키에 대한 참조를 정의합니다.
+    t_metric_eval_threshold = relationship(
+        "TMetricEvalThreshold", back_populates="t_metric_eval_history"
+    )
+    t_metric_eval_result_type = relationship(
+        "TCodeMetricEvalResultType", back_populates="t_metric_eval_history"
+    )
+
+
+# TCodeMetricEvalResultType 클래스 정의
+class TCodeMetricEvalResultType(Base):
+    __tablename__ = "t_code_metric_eval_result_type"
+
+    metric_eval_result_seq = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False, comment="metric eval result name")
+
+    t_metric_eval_history = relationship(
+        "TMetricEvalHistory", back_populates="t_code_metric_eval_result_type"
+    )

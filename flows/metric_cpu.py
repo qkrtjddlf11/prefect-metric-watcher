@@ -2,7 +2,6 @@
 # coding: utf-8
 
 
-import logging
 import os
 import sys
 from platform import node, platform
@@ -87,7 +86,7 @@ def metric_cpu_flow() -> None:
             results = conn.query(CPU_QUERY)
         except exceptions.ConnectionError as err:
             logger.error("Connection Error : %s", str(err))
-            sys.exit(1)
+            raise
 
         metric_points = results.get_points()
 
@@ -110,8 +109,6 @@ def metric_cpu_flow() -> None:
             if OperatorMapping.get(metric_cpu.eval_operator_type_seq).compare(
                 point.get("usage_percent"), metric_cpu.eval_value
             ):
-                print(point)
-                logger.info(point)
                 alert_host_list.append(point)
 
         # TODO Alert 발송
