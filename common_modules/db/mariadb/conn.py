@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from typing import List, Tuple
 
 from sqlalchemy import Engine, Row, create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from common_modules.db.mariadb.metric_watcher_base import (
     TCodeEvalOperatorType,
@@ -14,6 +14,8 @@ from common_modules.db.mariadb.metric_watcher_base import (
     TCodeMetricType,
     TMetricEvalThreshold,
 )
+
+DRIVER_NAME = "mysql+mysqlconnector"
 
 
 class MariaDBConnection:
@@ -24,39 +26,43 @@ class MariaDBConnection:
     def __init__(
         self,
         logger,
-        host="localhost",
+        server_ips="localhost",
         port=3306,
-        user="root",
+        username="root",
         password="root",
         db="metric_watcher",
     ) -> None:
         self.logger = logger
-        self.user = user
-        self.password = password
-        self.host = host
+        self.server_ips = server_ips
         self.port = port
+        self.user = username
+        self.password = password
         self.db = db
         self._engine = self._create_engine()
+        self.session = scoped_session(
+            sessionmaker(
+                autocommit=False,
+                autoflush=False,
+                bind=self._engine,
+            )
+        )
 
     def _create_engine(self) -> Engine:
         return create_engine(
-            f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
+            f"{DRIVER_NAME}://{self.user}:{self.password}@{self.server_ips}:{self.port}/{self.db}",
+            pool_size=10,
+            max_overflow=20,
+            echo=False,
         )
 
     @contextmanager
     def get_resources(self):
-        # Session 생성
-        Session = sessionmaker(bind=self._engine)
-        session = Session()
-
         try:
-            yield session  # with 블록으로 진입
-            session.commit()  # with 블록을 빠져나올 때 커밋
+            yield self.session  # with 블록으로 진입
         except Exception as e:
-            session.rollback()  # 예외 발생 시 롤백
             raise e
         finally:
-            session.close()  # 세션 닫기
+            self.session.close()  # 세션 닫기
 
     # TODO 공통 쿼리 만들기
     def execute_sessin_query(self, query, *args, **kwargs):

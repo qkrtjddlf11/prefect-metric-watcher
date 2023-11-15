@@ -1,13 +1,13 @@
 INFLUXDB:
   HOST: 172.30.1.170
   PORT: 8086
-  USER: root
+  USER: influx
   PASSWORD: influx
-  DB_NAME: metric_watcher
+  DB_NAME: telegraf
 
 MARIADB:
   HOST: 172.30.1.170
-  PORT: 8086
+  PORT: 3306
   USER: root
   PASSWORD: root
   DB_NAME: metric_watcher

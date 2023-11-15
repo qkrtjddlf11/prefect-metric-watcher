@@ -7,6 +7,8 @@ import pendulum
 import pytz
 from pytz import UnknownTimeZoneError, timezone
 
+from common_modules.common.base_impl import Metric
+
 
 def create_basetime(logger: logging, flow_run_timestamp: pendulum.datetime) -> datetime:
     # Cron은 정확하게 14:00:00 시간에 동작하는게 아니므로 시간 보정
@@ -23,3 +25,15 @@ def create_basetime(logger: logging, flow_run_timestamp: pendulum.datetime) -> d
         logger.error(err)
 
     return base_time.replace(second=0, microsecond=0)
+
+
+def update_point(
+    point: dict,
+    metric: Metric,
+    metric_eval_result_seq_name: str,
+    metric_eval_result_seq: int,
+) -> None:
+    if point is not None:
+        point.update({metric_eval_result_seq_name: metric_eval_result_seq})
+
+    metric.eval_point_group_list.append(point)

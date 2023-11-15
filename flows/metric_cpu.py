@@ -15,13 +15,14 @@ from yaml import YAMLError
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
 from common_modules.common.base_impl import Metric
-from common_modules.common.util import create_basetime
+from common_modules.common.util import create_basetime, update_point
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.data.comparison_operator import OperatorMapping
 from common_modules.data.data_velidator import verify_data
 from common_modules.db.influxdb.conn import InfluxDBConnection
 from common_modules.db.mariadb.conn import MariaDBConnection
-from common_modules.define.code import EvalType, MetricType
+from common_modules.db.mariadb.metric_watcher_base import TCodeMetricEvalResultType
+from common_modules.define.code import EvalResultType, EvalType, MetricType
 
 BASE_CONFIG_PATH = "config/config_dev.yaml"
 METRIC_CPU_NAME = "prefect_metric_cpu_scheduler"
@@ -104,15 +105,32 @@ def metric_cpu_flow() -> None:
     if not verify_data(logger, metric_cpu):
         logger.error("Invalid data : %s", metric_cpu)
     else:
-        alert_host_list = []
         for point in metric_points:
+            eval_result_value = EvalResultType.OK.value
+
             if OperatorMapping.get(metric_cpu.eval_operator_type_seq).compare(
                 point.get("usage_percent"), metric_cpu.eval_value
             ):
-                alert_host_list.append(point)
+                eval_result_value = EvalResultType.ALERT.value
 
-        # TODO Alert 발송
-        logger.info("Alert Send!")
+            update_point(
+                point,
+                metric_cpu,
+                TCodeMetricEvalResultType.metric_eval_result_seq.name,
+                eval_result_value,
+            )
+
+            print("Point =>", point)  # Local logging
+
+    # TODO Alert 발송
+    for eval_point in metric_cpu.eval_point_group_list:
+        # TODO eval_history에 결과 등록 필요
+        # TODO alert_history에 결과 들록 필요
+        if (
+            eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
+            > EvalResultType.OK.value
+        ):
+            pass
 
 
 if __name__ == "__main__":

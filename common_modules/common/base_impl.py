@@ -1,3 +1,10 @@
+# pylint: disable=C0114, C0115, C0116
+# coding: utf-8
+
+
+from collections import defaultdict
+
+
 class Metric:
     def __init__(
         self,
@@ -12,6 +19,7 @@ class Metric:
         self.eval_value = eval_value
         self.eval_operator_type_seq = eval_operator_type_seq
         self.operator_name = operator_name
+        self.eval_point_group_list = []
 
     def __str__(self) -> str:
         return (
@@ -19,5 +27,6 @@ class Metric:
             + f"metric_name={self.metric_name}, "
             + f"eval_value={self.eval_value}, "
             + f"eval_operator_type_seq={self.eval_operator_type_seq}, "
-            + f"operator_name={self.operator_name})"
+            + f"operator_name={self.operator_name}, "
+            + f"eval_point_group_list={self.eval_point_group_list}"
         )

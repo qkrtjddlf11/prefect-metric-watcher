@@ -79,6 +79,9 @@ class TMetricEvalThreshold(Base):
     t_code_eval_operator_type = relationship(
         "TCodeEvalOperatorType", back_populates="t_metric_eval_threshold"
     )
+    t_metric_eval_history = relationship(
+        "TMetricEvalHistory", back_populates="t_metric_eval_threshold"
+    )
 
 
 # EvalOperatorType 클래스 정의
@@ -120,7 +123,7 @@ class TMetricEvalHistory(Base):
     t_metric_eval_threshold = relationship(
         "TMetricEvalThreshold", back_populates="t_metric_eval_history"
     )
-    t_metric_eval_result_type = relationship(
+    t_code_metric_eval_result_type = relationship(
         "TCodeMetricEvalResultType", back_populates="t_metric_eval_history"
     )
 
