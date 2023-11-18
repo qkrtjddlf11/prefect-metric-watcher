@@ -3,17 +3,10 @@
 
 
 from contextlib import contextmanager
-from typing import List, Tuple
 
-from sqlalchemy import Engine, Row, create_engine
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session, sessionmaker
-
-from common_modules.db.mariadb.metric_watcher_base import (
-    TCodeEvalOperatorType,
-    TCodeEvalType,
-    TCodeMetricType,
-    TMetricEvalThreshold,
-)
 
 DRIVER_NAME = "mysql+mysqlconnector"
 
@@ -60,47 +53,15 @@ class MariaDBConnection:
         try:
             yield self.session  # with 블록으로 진입
         except Exception as e:
+            self.logger.error(e)
             raise e
         finally:
             self.session.close()  # 세션 닫기
 
-    # TODO 공통 쿼리 만들기
-    def execute_sessin_query(self, query, *args, **kwargs):
-        pass
-
-    def sql_get_metric_eval_threshold_list(
-        self, metric_type_seq: int, eval_type_seq
-    ) -> List[Row[Tuple[int, str, int, int, str]]]:
-        with self.get_resources() as session:
-            query = (
-                session.query(
-                    TMetricEvalThreshold.metric_type_seq,
-                    TCodeMetricType.name,
-                    TMetricEvalThreshold.eval_value,
-                    TMetricEvalThreshold.eval_operator_type_seq,
-                    TCodeEvalOperatorType.name,
-                )
-                .select_from(TMetricEvalThreshold)
-                .join(
-                    TCodeEvalType,
-                    TMetricEvalThreshold.eval_type_seq == TCodeEvalType.eval_type_seq,
-                )
-                .join(
-                    TCodeMetricType,
-                    TMetricEvalThreshold.metric_type_seq
-                    == TCodeMetricType.metric_type_seq,
-                )
-                .join(
-                    TCodeEvalOperatorType,
-                    TMetricEvalThreshold.eval_operator_type_seq
-                    == TCodeEvalOperatorType.eval_operator_type_seq,
-                )
-                .filter(TMetricEvalThreshold.metric_type_seq == metric_type_seq)
-                .filter(TMetricEvalThreshold.eval_type_seq == eval_type_seq)
-            )
-
-            print("=============== Query Statement Start ================")
-            print(query.statement)
-            print("=============== End Query Statement ================")
-
-            return query.all()
+    def execute_sessin_query(self, query_func, *args, **kwargs):
+        try:
+            with self.get_resources() as session:
+                return query_func(session, *args, **kwargs)
+        except SQLAlchemyError as err:
+            self.logger.error(err)
+            raise

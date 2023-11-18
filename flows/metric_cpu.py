@@ -14,7 +14,7 @@ from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
-from common_modules.common.base_impl import Metric
+from common_modules.common.base_impl import Metric, sql_get_metric_eval_threshold_list
 from common_modules.common.util import create_basetime, update_point
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.data.comparison_operator import OperatorMapping
@@ -96,9 +96,10 @@ def metric_cpu_flow() -> None:
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
 
-    results = mariadb_connection.sql_get_metric_eval_threshold_list(
-        MetricType.CPU.value, EvalType.COMMON.value
+    results = mariadb_connection.execute_sessin_query(
+        sql_get_metric_eval_threshold_list, MetricType.CPU.value, EvalType.COMMON.value
     )
+
     for result in results:
         metric_cpu = Metric(*result)
 

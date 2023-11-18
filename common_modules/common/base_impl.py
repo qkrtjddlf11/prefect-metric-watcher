@@ -1,8 +1,16 @@
 # pylint: disable=C0114, C0115, C0116
 # coding: utf-8
 
+from typing import List, Tuple
 
-from collections import defaultdict
+from sqlalchemy import Row
+
+from common_modules.db.mariadb.metric_watcher_base import (
+    TCodeEvalOperatorType,
+    TCodeEvalType,
+    TCodeMetricType,
+    TMetricEvalThreshold,
+)
 
 
 class Metric:
@@ -30,3 +38,39 @@ class Metric:
             + f"operator_name={self.operator_name}, "
             + f"eval_point_group_list={self.eval_point_group_list}"
         )
+
+
+def sql_get_metric_eval_threshold_list(
+    session, metric_type_seq: int, eval_type_seq: int
+) -> List[Row[Tuple[int, str, int, int, str]]]:
+    query = (
+        session.query(
+            TMetricEvalThreshold.metric_type_seq,
+            TCodeMetricType.name,
+            TMetricEvalThreshold.eval_value,
+            TMetricEvalThreshold.eval_operator_type_seq,
+            TCodeEvalOperatorType.name,
+        )
+        .select_from(TMetricEvalThreshold)
+        .join(
+            TCodeEvalType,
+            TMetricEvalThreshold.eval_type_seq == TCodeEvalType.eval_type_seq,
+        )
+        .join(
+            TCodeMetricType,
+            TMetricEvalThreshold.metric_type_seq == TCodeMetricType.metric_type_seq,
+        )
+        .join(
+            TCodeEvalOperatorType,
+            TMetricEvalThreshold.eval_operator_type_seq
+            == TCodeEvalOperatorType.eval_operator_type_seq,
+        )
+        .filter(TMetricEvalThreshold.metric_type_seq == metric_type_seq)
+        .filter(TMetricEvalThreshold.eval_type_seq == eval_type_seq)
+    )
+
+    print("=============== Query Statement Start ================")
+    print(query.statement)
+    print("=============== End Query Statement ================")
+
+    return query.all()
