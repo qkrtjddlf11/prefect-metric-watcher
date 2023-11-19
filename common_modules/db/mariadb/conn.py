@@ -58,7 +58,7 @@ class MariaDBConnection:
         finally:
             self.session.close()  # 세션 닫기
 
-    def execute_sessin_query(self, query_func, *args, **kwargs):
+    def execute_session_query(self, query_func, *args, **kwargs):
         try:
             with self.get_resources() as session:
                 return query_func(session, *args, **kwargs)

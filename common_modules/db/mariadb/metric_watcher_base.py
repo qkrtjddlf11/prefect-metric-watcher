@@ -1,7 +1,9 @@
 # pylint: disable=C0114, C0115, C0116
 # coding: utf-8
 
-from sqlalchemy import Column, ForeignKey, Integer, String
+from datetime import datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -118,6 +120,7 @@ class TMetricEvalHistory(Base):
         ForeignKey("t_code_metric_eval_result_type.metric_eval_result_seq"),
         nullable=False,
     )
+    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     # 외래 키에 대한 참조를 정의합니다.
     t_metric_eval_threshold = relationship(

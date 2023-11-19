@@ -4,6 +4,7 @@
 
 import os
 import sys
+from datetime import datetime
 from platform import node, platform
 
 from prefect import context, flow, get_run_logger
@@ -21,7 +22,10 @@ from common_modules.data.comparison_operator import OperatorMapping
 from common_modules.data.data_velidator import verify_data
 from common_modules.db.influxdb.conn import InfluxDBConnection
 from common_modules.db.mariadb.conn import MariaDBConnection
-from common_modules.db.mariadb.metric_watcher_base import TCodeMetricEvalResultType
+from common_modules.db.mariadb.metric_watcher_base import (
+    TCodeMetricEvalResultType,
+    TMetricEvalHistory,
+)
 from common_modules.define.code import EvalResultType, EvalType, MetricType
 
 BASE_CONFIG_PATH = "config/config_dev.yaml"
@@ -96,7 +100,7 @@ def metric_cpu_flow() -> None:
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
 
-    results = mariadb_connection.execute_sessin_query(
+    results = mariadb_connection.execute_session_query(
         sql_get_metric_eval_threshold_list, MetricType.CPU.value, EvalType.COMMON.value
     )
 
@@ -125,7 +129,19 @@ def metric_cpu_flow() -> None:
 
     # TODO Alert 발송
     for eval_point in metric_cpu.eval_point_group_list:
-        # TODO eval_history에 결과 등록 필요
+        # TODO 관제 해야 할 서버의 개수가 많아질 경우 session.add_all로 변경 필요할 수도..
+        with mariadb_connection.get_resources() as session:
+            new_entry = TMetricEvalHistory(
+                metric_eval_threshold_seq=metric_cpu.metric_eval_threshold_seq,
+                metric_eval_result_seq=eval_point[
+                    TCodeMetricEvalResultType.metric_eval_result_seq.name
+                ],
+                timestamp=datetime.strptime(eval_point["time"], "%Y-%m-%dT%H:%M:%SZ"),
+            )
+
+            session.add(new_entry)
+            session.commit()
+
         # TODO alert_history에 결과 들록 필요
         if (
             eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
