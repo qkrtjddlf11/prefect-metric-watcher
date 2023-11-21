@@ -2,12 +2,31 @@
 # coding: utf-8
 import datetime
 import logging
+import os
+import sys
 
 import pendulum
 import pytz
+from prefect import variables
 from pytz import UnknownTimeZoneError, timezone
 
 from common_modules.common.base_impl import Metric
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+
+
+def get_after_days(after_days: str) -> datetime:
+    """Get after_days variable from Prefect API
+
+    Returns:
+        _type_: datetime
+    """
+
+    date = datetime.datetime.now() - datetime.timedelta(
+        days=int(variables.get(after_days))
+    )
+
+    return date.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 def create_basetime(logger: logging, flow_run_timestamp: pendulum.datetime) -> datetime:

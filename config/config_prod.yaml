@@ -11,3 +11,10 @@ MARIADB:
   USER: root
   PASSWORD: root
   DB_NAME: metric_watcher
+
+POSTGRESQLDB:
+  HOST: 172.30.1.170
+  PORT: 15432
+  USER: postgres
+  PASSWORD: postgres
+  DB_NAME: prefect
