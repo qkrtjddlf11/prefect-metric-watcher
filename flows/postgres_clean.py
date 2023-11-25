@@ -83,20 +83,20 @@ def postgres_cleanup_flow() -> None:
             cursor.execute(select_query)
             flow_ids = [flow_id[0] for flow_id in cursor.fetchall()]
             print(flow_ids)
-            # if len(flow_ids) > 0:
-            #     # Create the IN clause with placeholders
-            #     placeholders = ", ".join(["%s"] * len(flow_ids))
-            #     delete_query_list = [
-            #         f"DELETE FROM flow_run WHERE id IN ({placeholders})",
-            #         f"DELETE FROM log WHERE flow_run_id IN ({placeholders})",
-            #     ]
+            if len(flow_ids) > 0:
+                # Create the IN clause with placeholders
+                placeholders = ", ".join(["%s"] * len(flow_ids))
+                delete_query_list = [
+                    f"DELETE FROM flow_run WHERE id IN ({placeholders})",
+                    f"DELETE FROM log WHERE flow_run_id IN ({placeholders})",
+                ]
 
-            #     for delete_query in delete_query_list:
-            #         cursor.execute(delete_query, flow_ids)
-            #         conn.commit()
-            #         logger.info(
-            #             f"{delete_query.split(' ')[2]} table {cursor.rowcount} rows were deleted."
-            #         )
+                for delete_query in delete_query_list:
+                    cursor.execute(delete_query, flow_ids)
+                    conn.commit()
+                    logger.info(
+                        f"{delete_query.split(' ')[2]} table {cursor.rowcount} rows were deleted."
+                    )
         except psycopg2.Error as err:
             logger.error(f"Query execution failed. {err}")
             raise
