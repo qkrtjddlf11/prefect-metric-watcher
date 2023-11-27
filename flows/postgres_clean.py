@@ -20,7 +20,7 @@ from common_modules.config.yaml_config import YamlConfig
 from common_modules.db.postgresql.conn import PostgreSQLConnection
 
 BASE_CONFIG_PATH = "config/config_dev.yaml"
-POSTGRES_SCHEDULER_NAME = "prefect_metric_cpu_scheduler"
+POSTGRES_SCHEDULER_NAME = "prefect_postgresql_cleanup_scheduler"
 PREFECT_POSTGRES_AFTER_DAYS_NAME = "prefect_postrgres_after_days"
 
 
@@ -47,7 +47,7 @@ def generate_flow_run_name() -> str:
     flow_run_name=generate_flow_run_name,
     retries=3,
     retry_delay_seconds=5,
-    description="Prefect agent module for CPU usage",
+    description="Prefect agent module for clean up postgresql",
     timeout_seconds=5,
     task_runner=SequentialTaskRunner(),
 )
@@ -82,7 +82,7 @@ def postgres_cleanup_flow() -> None:
         try:
             cursor.execute(select_query)
             flow_ids = [flow_id[0] for flow_id in cursor.fetchall()]
-            print(flow_ids)
+
             if len(flow_ids) > 0:
                 # Create the IN clause with placeholders
                 placeholders = ", ".join(["%s"] * len(flow_ids))
