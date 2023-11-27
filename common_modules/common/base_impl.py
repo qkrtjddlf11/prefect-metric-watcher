@@ -10,6 +10,7 @@ from common_modules.db.mariadb.metric_watcher_base import (
     TCodeEvalType,
     TCodeMetricType,
     TMetricEvalThreshold,
+    TOperationServer,
 )
 
 
@@ -78,3 +79,14 @@ def sql_get_metric_eval_threshold_list(
     print("=============== End Query Statement ================")
 
     return query.all()
+
+
+def sql_get_operation_server_list(session, operation_server_name: str) -> int:
+    result = (
+        session.query(TOperationServer.operation_server_seq)
+        .select_from(TOperationServer)
+        .filter(TOperationServer.name == operation_server_name)
+        .one()
+    )
+
+    return result.operation_server_seq

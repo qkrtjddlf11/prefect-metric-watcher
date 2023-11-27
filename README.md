@@ -13,5 +13,5 @@
 > /bin/sh docker-build-dev.sh
 
 # Run docker
-> docker run -d --name metric_watcher_cpu_agent -e PREFECT_API_URL='http://172.30.1.150:14200/api' prefect-metric-watcher:v0.0.3 prefect agent start -p METRIC_WATCHER_POOL -q METRIC_WATCHER_CPU_QUEUE --limit 3
-> docker run -d --name metric_watcher_postgres_management_agent -e PREFECT_API_URL='http://172.30.1.150:14200/api' prefect-metric-watcher:v0.0.3 prefect agent start -p METRIC_WATCHER_POSTGRES_MANAGEMENT_POOL -q METRIC_WATCHER_POSTGRES_MANAGEMENT_QUEUE --limit 1
+> docker run -d --name metric_watcher_cpu_agent -e PREFECT_API_URL='http://172.30.1.150:14200/api' prefect-metric-watcher:v0.0.4 prefect agent start -p METRIC_WATCHER_POOL -q METRIC_WATCHER_CPU_QUEUE --limit 3
+> docker run -d --name metric_watcher_postgres_management_agent -e PREFECT_API_URL='http://172.30.1.150:14200/api' prefect-metric-watcher:v0.0.4 prefect agent start -p METRIC_WATCHER_POSTGRES_MANAGEMENT_POOL -q METRIC_WATCHER_POSTGRES_MANAGEMENT_QUEUE --limit 1

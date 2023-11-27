@@ -15,7 +15,11 @@ from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
-from common_modules.common.base_impl import Metric, sql_get_metric_eval_threshold_list
+from common_modules.common.base_impl import (
+    Metric,
+    sql_get_metric_eval_threshold_list,
+    sql_get_operation_server_list,
+)
 from common_modules.common.util import create_basetime, update_point
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.data.comparison_operator import OperatorMapping
@@ -36,6 +40,11 @@ CPU_QUERY = """SELECT time, host, (100 - usage_idle) as usage_percent
                 FROM cpu 
                 WHERE time > now() - 2m AND time <= now() - 1m
                 GROUP BY host limit 1"""
+
+# CPU Point Values
+POINT_TIME_NAME = "time"
+POINT_HOST_NAME = "host"
+POINT_USAGE_PERCENT = "usage_percent"
 
 
 def generate_flow_run_name() -> str:
@@ -126,6 +135,8 @@ def metric_cpu_flow() -> None:
 
             print("Point =>", point)  # Local logging
 
+    print("metric_cpu =>", metric_cpu)
+
     # TODO Alert 발송
     for eval_point in metric_cpu.eval_point_group_list:
         # TODO 관제 해야 할 서버의 개수가 많아질 경우 session.add_all로 변경 필요할 수도..
@@ -135,13 +146,19 @@ def metric_cpu_flow() -> None:
                 metric_eval_result_seq=eval_point[
                     TCodeMetricEvalResultType.metric_eval_result_seq.name
                 ],
-                timestamp=datetime.strptime(eval_point["time"], "%Y-%m-%dT%H:%M:%SZ"),
+                operation_server_seq=mariadb_connection.execute_session_query(
+                    sql_get_operation_server_list, eval_point.get(POINT_HOST_NAME)
+                ),
+                metric_eval_result_value=eval_point.get(POINT_USAGE_PERCENT),
+                timestamp=datetime.strptime(
+                    eval_point[POINT_TIME_NAME], "%Y-%m-%dT%H:%M:%SZ"
+                ),
             )
 
             session.add(new_entry)
             session.commit()
 
-        # TODO alert_history에 결과 들록 필요
+        # TODO alert_history에 결과 등록 필요
         if (
             eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
             > EvalResultType.OK.value

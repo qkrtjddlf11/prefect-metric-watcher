@@ -3,7 +3,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -120,6 +120,14 @@ class TMetricEvalHistory(Base):
         ForeignKey("t_code_metric_eval_result_type.metric_eval_result_seq"),
         nullable=False,
     )
+    operation_server_seq = Column(
+        Integer,
+        ForeignKey("t_operation_server.operation_server_seq"),
+        nullable=False,
+    )
+    metric_eval_result_value = Column(
+        Float, nullable=False, default=0, comment="Evaluate result value"
+    )
     timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     # 외래 키에 대한 참조를 정의합니다.
@@ -128,6 +136,9 @@ class TMetricEvalHistory(Base):
     )
     t_code_metric_eval_result_type = relationship(
         "TCodeMetricEvalResultType", back_populates="t_metric_eval_history"
+    )
+    t_operation_server = relationship(
+        "TOperationServer", back_populates="t_metric_eval_history"
     )
 
 
@@ -140,4 +151,21 @@ class TCodeMetricEvalResultType(Base):
 
     t_metric_eval_history = relationship(
         "TMetricEvalHistory", back_populates="t_code_metric_eval_result_type"
+    )
+
+
+# TOperationServer 클래스 정의
+class TOperationServer(Base):
+    __tablename__ = "t_operation_server"
+
+    operation_server_seq = Column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        comment="Operation Server Sequence",
+    )
+    name = Column(String(100), nullable=False, comment="Operation Server name")
+
+    t_metric_eval_history = relationship(
+        "TMetricEvalHistory", back_populates="t_operation_server"
     )
