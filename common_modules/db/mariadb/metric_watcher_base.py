@@ -165,6 +165,12 @@ class TOperationServer(Base):
         comment="Operation Server Sequence",
     )
     name = Column(String(100), nullable=False, comment="Operation Server name")
+    ip_address = Column(
+        String(15),
+        nullable=False,
+        default="0.0.0.0",
+        comment="Operation Server IP Address",
+    )
 
     t_metric_eval_history = relationship(
         "TMetricEvalHistory", back_populates="t_operation_server"

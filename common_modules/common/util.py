@@ -2,8 +2,6 @@
 # coding: utf-8
 import datetime
 import logging
-import os
-import sys
 
 import pendulum
 import pytz
@@ -11,8 +9,6 @@ from prefect import variables
 from pytz import UnknownTimeZoneError, timezone
 
 from common_modules.common.base_impl import Metric
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 
 def get_after_days(after_days: str) -> datetime:

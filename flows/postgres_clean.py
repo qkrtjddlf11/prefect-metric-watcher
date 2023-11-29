@@ -18,10 +18,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from common_modules.common.util import create_basetime, get_after_days
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.db.postgresql.conn import PostgreSQLConnection
-
-BASE_CONFIG_PATH = "config/config_dev.yaml"
-POSTGRES_SCHEDULER_NAME = "prefect_postgresql_cleanup_scheduler"
-PREFECT_POSTGRES_AFTER_DAYS_NAME = "prefect_postrgres_after_days"
+from common_modules.define.name import (
+    BASE_CONFIG_PATH,
+    POSTGRES_SCHEDULER_NAME,
+    PREFECT_POSTGRES_AFTER_DAYS_NAME,
+)
 
 
 def generate_flow_run_name() -> str:

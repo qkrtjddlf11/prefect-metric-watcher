@@ -31,9 +31,7 @@ from common_modules.db.mariadb.metric_watcher_base import (
     TMetricEvalHistory,
 )
 from common_modules.define.code import EvalResultType, EvalType, MetricType
-
-BASE_CONFIG_PATH = "config/config_dev.yaml"
-METRIC_CPU_NAME = "prefect_metric_cpu_scheduler"
+from common_modules.define.name import BASE_CONFIG_PATH, METRIC_CPU_SCHEDULER_NAME
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
 CPU_QUERY = """SELECT time, host, (100 - usage_idle) as usage_percent
@@ -66,7 +64,7 @@ def generate_flow_run_name() -> str:
 
 
 @flow(
-    name=METRIC_CPU_NAME,
+    name=METRIC_CPU_SCHEDULER_NAME,
     flow_run_name=generate_flow_run_name,
     retries=3,
     retry_delay_seconds=5,
