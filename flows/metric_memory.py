@@ -31,18 +31,18 @@ from common_modules.db.mariadb.metric_watcher_base import (
     TMetricEvalHistory,
 )
 from common_modules.define.code import EvalResultType, EvalType, MetricType
-from common_modules.define.name import BASE_CONFIG_PATH, METRIC_CPU_SCHEDULER_NAME
+from common_modules.define.name import BASE_CONFIG_PATH, METRIC_MEMORY_SCHEDULER_NAME
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
-GET_CPU_USAGE_PERCENT_QUERY = """SELECT time, host, (100 - usage_idle) as usage_percent
-                FROM cpu 
+GET_MEMORY_USED_PERCENT_QUERY = """SELECT time, host, used_percent
+                FROM mem 
                 WHERE time > now() - 2m AND time <= now() - 1m
                 GROUP BY host limit 1"""
 
-# CPU Point Values
+# Memory Point Values
 POINT_TIME_NAME = "time"
 POINT_HOST_NAME = "host"
-POINT_USAGE_PERCENT = "usage_percent"
+POINT_USED_PERCENT = "used_percent"
 
 
 def generate_flow_run_name() -> str:
@@ -64,15 +64,15 @@ def generate_flow_run_name() -> str:
 
 
 @flow(
-    name=METRIC_CPU_SCHEDULER_NAME,
+    name=METRIC_MEMORY_SCHEDULER_NAME,
     flow_run_name=generate_flow_run_name,
     retries=3,
     retry_delay_seconds=5,
-    description="Prefect agent module for CPU usage",
+    description="Prefect agent module for memory used percent",
     timeout_seconds=5,
     task_runner=SequentialTaskRunner(),
 )
-def metric_cpu_flow() -> None:
+def metric_memory_flow() -> None:
     logger = get_run_logger()
 
     logger.info("Network: %s. ✅", node())
@@ -94,7 +94,7 @@ def metric_cpu_flow() -> None:
     # TODO InfluxDB 데이터 조회
     with influx.get_resource() as conn:
         try:
-            results = conn.query(GET_CPU_USAGE_PERCENT_QUERY)
+            results = conn.query(GET_MEMORY_USED_PERCENT_QUERY)
         except exceptions.ConnectionError as err:
             logger.error("Connection Error : %s", str(err))
             raise
@@ -107,47 +107,49 @@ def metric_cpu_flow() -> None:
     )
 
     results = mariadb_connection.execute_session_query(
-        sql_get_metric_eval_threshold_list, MetricType.CPU.value, EvalType.COMMON.value
+        sql_get_metric_eval_threshold_list,
+        MetricType.MEMORY.value,
+        EvalType.COMMON.value,
     )
 
     for result in results:
-        metric_cpu = Metric(*result)
+        metric_memory = Metric(*result)
 
-    if not verify_data(logger, metric_cpu):
-        logger.error("Invalid data : %s", metric_cpu)
+    if not verify_data(logger, metric_memory):
+        logger.error("Invalid data : %s", metric_memory)
     else:
         for point in metric_points:
             eval_result_value = EvalResultType.OK.value
 
-            if OperatorMapping.get(metric_cpu.eval_operator_type_seq).compare(
-                point.get("usage_percent"), metric_cpu.eval_value
+            if OperatorMapping.get(metric_memory.eval_operator_type_seq).compare(
+                point.get("used_percent"), metric_memory.eval_value
             ):
                 eval_result_value = EvalResultType.ALERT.value
 
             update_point(
                 point,
-                metric_cpu,
+                metric_memory,
                 TCodeMetricEvalResultType.metric_eval_result_seq.name,
                 eval_result_value,
             )
 
             print("Point =>", point)  # Local logging
 
-    print("metric_cpu =>", metric_cpu)
+    print("metric_memory =>", metric_memory)
 
     # TODO Alert 발송
-    for eval_point in metric_cpu.eval_point_group_list:
+    for eval_point in metric_memory.eval_point_group_list:
         # TODO 관제 해야 할 서버의 개수가 많아질 경우 session.add_all로 변경 필요할 수도..
         with mariadb_connection.get_resources() as session:
             new_entry = TMetricEvalHistory(
-                metric_eval_threshold_seq=metric_cpu.metric_eval_threshold_seq,
+                metric_eval_threshold_seq=metric_memory.metric_eval_threshold_seq,
                 metric_eval_result_seq=eval_point[
                     TCodeMetricEvalResultType.metric_eval_result_seq.name
                 ],
                 operation_server_seq=mariadb_connection.execute_session_query(
                     sql_get_operation_server_list, eval_point.get(POINT_HOST_NAME)
                 ),
-                metric_eval_result_value=eval_point.get(POINT_USAGE_PERCENT),
+                metric_eval_result_value=eval_point.get(POINT_USED_PERCENT),
                 timestamp=datetime.strptime(
                     eval_point[POINT_TIME_NAME], "%Y-%m-%dT%H:%M:%SZ"
                 ),
@@ -165,4 +167,4 @@ def metric_cpu_flow() -> None:
 
 
 if __name__ == "__main__":
-    metric_cpu_flow()
+    metric_memory_flow()
