@@ -62,7 +62,12 @@ class TMetricEvalThreshold(Base):
         nullable=False,
         comment="Evaluate Type Sequence",
     )
-    svr_vrc_list = Column(String(100), comment="SVR_VRC List")
+    operation_server_seq = Column(
+        Integer,
+        ForeignKey("t_operation_server.operation_server_seq"),
+        nullable=False,
+        comment="Operation Server Sequence",
+    )
     eval_operator_type_seq = Column(
         Integer,
         ForeignKey("t_code_eval_operator_type.eval_operator_type_seq"),
@@ -74,6 +79,9 @@ class TMetricEvalThreshold(Base):
     # 외래 키로 연결된 테이블과의 관계 설정
     t_code_eval_type = relationship(
         "TCodeEvalType", back_populates="t_metric_eval_threshold"
+    )
+    t_operation_server = relationship(
+        "TOperationServer", back_populates="t_metric_eval_threshold"
     )
     t_code_metric_type = relationship(
         "TCodeMetricType", back_populates="t_metric_eval_threshold"
@@ -174,4 +182,7 @@ class TOperationServer(Base):
 
     t_metric_eval_history = relationship(
         "TMetricEvalHistory", back_populates="t_operation_server"
+    )
+    t_metric_eval_threshold = relationship(
+        "TMetricEvalThreshold", back_populates="t_operation_server"
     )

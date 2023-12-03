@@ -21,6 +21,8 @@ class Metric:
         metric_eval_threshold_seq: int = 0,
         metric_type_seq: int = 0,
         metric_name: str = "",
+        operation_server_seq: int = 0,
+        operation_server_name: str = "",
         eval_value: int = 0,
         eval_operator_type_seq: int = 0,
         operator_name: str = "",
@@ -28,6 +30,8 @@ class Metric:
         self.metric_eval_threshold_seq = metric_eval_threshold_seq
         self.metric_type_seq = metric_type_seq
         self.metric_name = metric_name
+        self.operation_server_seq = operation_server_seq
+        self.operation_server_name = operation_server_name
         self.eval_value = eval_value
         self.eval_operator_type_seq = eval_operator_type_seq
         self.operator_name = operator_name
@@ -38,6 +42,8 @@ class Metric:
             f"Metric(metric_eval_threshold_seq={self.metric_eval_threshold_seq},  "
             + f"metric_type_seq={self.metric_type_seq}, "
             + f"metric_name={self.metric_name}, "
+            + f"operation_server_seq={self.operation_server_seq}, "
+            + f"operation_server_name={self.operation_server_name}, "
             + f"eval_value={self.eval_value}, "
             + f"eval_operator_type_seq={self.eval_operator_type_seq}, "
             + f"operator_name={self.operator_name}, "
@@ -53,6 +59,8 @@ def sql_get_metric_eval_threshold_list(
             TMetricEvalThreshold.metric_eval_threshold_seq,
             TMetricEvalThreshold.metric_type_seq,
             TCodeMetricType.name,
+            TMetricEvalThreshold.operation_server_seq,
+            TOperationServer.name,
             TMetricEvalThreshold.eval_value,
             TMetricEvalThreshold.eval_operator_type_seq,
             TCodeEvalOperatorType.name,
@@ -70,6 +78,11 @@ def sql_get_metric_eval_threshold_list(
             TCodeEvalOperatorType,
             TMetricEvalThreshold.eval_operator_type_seq
             == TCodeEvalOperatorType.eval_operator_type_seq,
+        )
+        .join(
+            TOperationServer,
+            TMetricEvalThreshold.operation_server_seq
+            == TOperationServer.operation_server_seq,
         )
         .filter(TMetricEvalThreshold.metric_type_seq == metric_type_seq)
         .filter(TMetricEvalThreshold.eval_type_seq == eval_type_seq)

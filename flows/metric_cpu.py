@@ -106,12 +106,12 @@ def metric_cpu_flow() -> None:
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
 
-    results = mariadb_connection.execute_session_query(
+    eval_common_list = mariadb_connection.execute_session_query(
         sql_get_metric_eval_threshold_list, MetricType.CPU.value, EvalType.COMMON.value
     )
 
-    for result in results:
-        metric_cpu = Metric(*result)
+    for common in eval_common_list:
+        metric_cpu = Metric(*common)
 
     if not verify_data(logger, metric_cpu):
         logger.error("Invalid data : %s", metric_cpu)
