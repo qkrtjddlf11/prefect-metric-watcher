@@ -20,7 +20,9 @@ class Metric:
         self,
         metric_eval_threshold_seq: int = 0,
         metric_type_seq: int = 0,
-        metric_name: str = "",
+        metric_type_name: str = "",
+        eval_type_seq: int = 0,
+        eval_type_name: str = "",
         operation_server_seq: int = 0,
         operation_server_name: str = "",
         eval_value: int = 0,
@@ -29,7 +31,9 @@ class Metric:
     ) -> None:
         self.metric_eval_threshold_seq = metric_eval_threshold_seq
         self.metric_type_seq = metric_type_seq
-        self.metric_name = metric_name
+        self.metric_type_name = metric_type_name
+        self.eval_type_seq = eval_type_seq
+        self.eval_type_name = eval_type_name
         self.operation_server_seq = operation_server_seq
         self.operation_server_name = operation_server_name
         self.eval_value = eval_value
@@ -39,9 +43,11 @@ class Metric:
 
     def __str__(self) -> str:
         return (
-            f"Metric(metric_eval_threshold_seq={self.metric_eval_threshold_seq},  "
+            f"Metric(metric_eval_threshold_seq={self.metric_eval_threshold_seq}, "
             + f"metric_type_seq={self.metric_type_seq}, "
-            + f"metric_name={self.metric_name}, "
+            + f"metric_type_name={self.metric_type_name}, "
+            + f"eval_type_seq={self.eval_type_seq}, "
+            + f"eval_type_name={self.eval_type_name}, "
             + f"operation_server_seq={self.operation_server_seq}, "
             + f"operation_server_name={self.operation_server_name}, "
             + f"eval_value={self.eval_value}, "
@@ -59,6 +65,8 @@ def sql_get_metric_eval_threshold_list(
             TMetricEvalThreshold.metric_eval_threshold_seq,
             TMetricEvalThreshold.metric_type_seq,
             TCodeMetricType.name,
+            TCodeEvalType.eval_type_seq,
+            TCodeEvalType.name,
             TMetricEvalThreshold.operation_server_seq,
             TOperationServer.name,
             TMetricEvalThreshold.eval_value,

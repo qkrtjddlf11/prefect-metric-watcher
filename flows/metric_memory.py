@@ -107,16 +107,17 @@ def metric_memory_flow() -> None:
     )
 
     results = mariadb_connection.execute_session_query(
-        sql_get_metric_eval_threshold_list,
-        MetricType.MEMORY.value,
-        EvalType.COMMON.value,
+        sql_get_metric_eval_threshold_list, MetricType.MEMORY.value, 5
     )
+
+    metric_memory = None
 
     for result in results:
         metric_memory = Metric(*result)
 
     if not verify_data(logger, metric_memory):
-        logger.error("Invalid data : %s", metric_memory)
+        # TODO Alert 발송 (Slack)
+        return
     else:
         for point in metric_points:
             eval_result_value = EvalResultType.OK.value

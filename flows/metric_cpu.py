@@ -110,11 +110,14 @@ def metric_cpu_flow() -> None:
         sql_get_metric_eval_threshold_list, MetricType.CPU.value, EvalType.COMMON.value
     )
 
+    metric_cpu = None
+
     for common in eval_common_list:
         metric_cpu = Metric(*common)
 
     if not verify_data(logger, metric_cpu):
-        logger.error("Invalid data : %s", metric_cpu)
+        # TODO Alert 발송 (Slack)
+        return
     else:
         for point in metric_points:
             eval_result_value = EvalResultType.OK.value

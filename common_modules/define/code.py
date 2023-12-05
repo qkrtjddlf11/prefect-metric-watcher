@@ -4,8 +4,10 @@
 from enum import Enum
 
 # Verify Data errors
+E_INVALID_NONE_DATA = "Invalid None data"
 E_INVALID_METRIC_TYPE_SEQ = "Invalid metric_type_seq"
 E_INVALID_METHOD_OPERATOR_TYPE_SEQ = "Invalid method_operator_type_seq"
+E_INVALID_EVAL_TYPE_SEQ = "Invalid eval_type_seq"
 
 
 class MetricType(Enum):
