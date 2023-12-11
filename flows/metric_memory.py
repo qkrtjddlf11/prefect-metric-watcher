@@ -15,6 +15,7 @@ from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
+from common_modules.alert.slack import flow_failure_webhook
 from common_modules.common.base_impl import (
     Metric,
     sql_get_metric_eval_threshold_list,
@@ -71,6 +72,7 @@ def generate_flow_run_name() -> str:
     description="Prefect agent module for memory used percent",
     timeout_seconds=5,
     task_runner=SequentialTaskRunner(),
+    on_failure=[flow_failure_webhook],
 )
 def metric_memory_flow() -> None:
     logger = get_run_logger()

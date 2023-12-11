@@ -15,6 +15,7 @@ from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
+from common_modules.alert.slack import flow_failure_webhook
 from common_modules.common.base_impl import (
     Metric,
     sql_get_metric_eval_threshold_list,
@@ -66,11 +67,12 @@ def generate_flow_run_name() -> str:
 @flow(
     name=METRIC_CPU_SCHEDULER_NAME,
     flow_run_name=generate_flow_run_name,
-    retries=3,
+    retries=1,
     retry_delay_seconds=5,
     description="Prefect agent module for CPU usage",
     timeout_seconds=5,
     task_runner=SequentialTaskRunner(),
+    on_failure=[flow_failure_webhook],
 )
 def metric_cpu_flow() -> None:
     logger = get_run_logger()
@@ -164,7 +166,16 @@ def metric_cpu_flow() -> None:
             eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
             > EvalResultType.OK.value
         ):
-            pass
+            if (
+                eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
+                == EvalResultType.ALERT.value
+            ):
+                pass
+            elif (
+                eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
+                == EvalResultType.SNOOZE.value
+            ):
+                pass
 
 
 if __name__ == "__main__":
