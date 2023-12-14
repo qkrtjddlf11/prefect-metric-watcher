@@ -33,6 +33,7 @@ from common_modules.db.mariadb.metric_watcher_base import (
 )
 from common_modules.define.code import EvalResultType, EvalType, MetricType
 from common_modules.define.name import BASE_CONFIG_PATH, METRIC_MEMORY_SCHEDULER_NAME
+from common_modules.generate.messages import generate_alert_messages
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
 GET_MEMORY_USED_PERCENT_QUERY = """SELECT time, host, used_percent
@@ -109,7 +110,7 @@ def metric_memory_flow() -> None:
     )
 
     results = mariadb_connection.execute_session_query(
-        sql_get_metric_eval_threshold_list, MetricType.MEMORY.value, 5
+        sql_get_metric_eval_threshold_list, MetricType.MEMORY.value, 3
     )
 
     metric_memory = None
@@ -166,7 +167,17 @@ def metric_memory_flow() -> None:
             eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
             > EvalResultType.OK.value
         ):
-            pass
+            if (
+                eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
+                == EvalResultType.ALERT.value
+            ):
+                generated_messages = generate_alert_messages(metric_memory, eval_point)
+                print(generated_messages)
+            elif (
+                eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
+                == EvalResultType.SNOOZE.value
+            ):
+                pass
 
 
 if __name__ == "__main__":

@@ -33,6 +33,7 @@ from common_modules.db.mariadb.metric_watcher_base import (
 )
 from common_modules.define.code import EvalResultType, EvalType, MetricType
 from common_modules.define.name import BASE_CONFIG_PATH, METRIC_CPU_SCHEDULER_NAME
+from common_modules.generate.messages import generate_alert_messages
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
 GET_CPU_USAGE_PERCENT_QUERY = """SELECT time, host, (100 - usage_idle) as usage_percent
@@ -170,7 +171,8 @@ def metric_cpu_flow() -> None:
                 eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
                 == EvalResultType.ALERT.value
             ):
-                pass
+                generated_messages = generate_alert_messages(metric_cpu, eval_point)
+                print(generated_messages)
             elif (
                 eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
                 == EvalResultType.SNOOZE.value

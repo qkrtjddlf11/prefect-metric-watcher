@@ -27,7 +27,8 @@ class Metric:
         operation_server_name: str = "",
         eval_value: int = 0,
         eval_operator_type_seq: int = 0,
-        operator_name: str = "",
+        eval_operator_name: str = "",
+        eval_operator: str = "",
     ) -> None:
         self.metric_eval_threshold_seq = metric_eval_threshold_seq
         self.metric_type_seq = metric_type_seq
@@ -38,7 +39,8 @@ class Metric:
         self.operation_server_name = operation_server_name
         self.eval_value = eval_value
         self.eval_operator_type_seq = eval_operator_type_seq
-        self.operator_name = operator_name
+        self.eval_operator_name = eval_operator_name
+        self.eval_operator = eval_operator
         self.eval_point_group_list = []
 
     def __str__(self) -> str:
@@ -52,7 +54,8 @@ class Metric:
             + f"operation_server_name={self.operation_server_name}, "
             + f"eval_value={self.eval_value}, "
             + f"eval_operator_type_seq={self.eval_operator_type_seq}, "
-            + f"operator_name={self.operator_name}, "
+            + f"eval_operator_name={self.eval_operator_name}, "
+            + f"eval_operator={self.eval_operator}, "
             + f"eval_point_group_list={self.eval_point_group_list}"
         )
 
@@ -72,6 +75,7 @@ def sql_get_metric_eval_threshold_list(
             TMetricEvalThreshold.eval_value,
             TMetricEvalThreshold.eval_operator_type_seq,
             TCodeEvalOperatorType.name,
+            TCodeEvalOperatorType.eval_operator,
         )
         .select_from(TMetricEvalThreshold)
         .join(
