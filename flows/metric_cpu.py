@@ -90,7 +90,7 @@ def metric_cpu_flow() -> None:
         logger, *yaml_config.get_all_config().get("INFLUXDB").values()
     )
 
-    # TODO InfluxDB 데이터 조회
+    # InfluxDB 데이터 조회
     with influx.get_resource() as conn:
         try:
             results = conn.query(GET_CPU_USAGE_PERCENT_QUERY)
@@ -100,7 +100,7 @@ def metric_cpu_flow() -> None:
 
         metric_points = results.get_points()
 
-    # TODO MariaDB 조회 및 InfluxDB 데이터 평가
+    # MariaDB 조회 및 InfluxDB 데이터 평가
     mariadb_connection = MariaDBConnection(
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
@@ -149,7 +149,7 @@ def metric_cpu_flow() -> None:
                 POINT_USAGE_PERCENT,
             )
 
-            # TODO alert_history에 결과 등록 필요
+            # alert_history에 결과 등록
             if (
                 eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
                 > EvalResultType.OK.value

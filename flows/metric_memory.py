@@ -30,7 +30,7 @@ from common_modules.data.data_velidator import verify_data
 from common_modules.db.influxdb.conn import InfluxDBConnection
 from common_modules.db.mariadb.conn import MariaDBConnection
 from common_modules.db.mariadb.metric_watcher_base import TCodeMetricEvalResultType
-from common_modules.define.code import EvalResultType, MetricType
+from common_modules.define.code import EvalResultType, EvalType, MetricType
 from common_modules.define.name import (
     BASE_CONFIG_PATH,
     METRIC_MEMORY_SCHEDULER_NAME,
@@ -91,7 +91,7 @@ def metric_memory_flow() -> None:
         logger, *yaml_config.get_all_config().get("INFLUXDB").values()
     )
 
-    # TODO InfluxDB 데이터 조회
+    # InfluxDB 데이터 조회
     with influx.get_resource() as conn:
         try:
             results = conn.query(GET_MEMORY_USED_PERCENT_QUERY)
@@ -101,13 +101,15 @@ def metric_memory_flow() -> None:
 
         metric_points = results.get_points()
 
-    # TODO MariaDB 조회 및 InfluxDB 데이터 평가
+    # MariaDB 조회 및 InfluxDB 데이터 평가
     mariadb_connection = MariaDBConnection(
         logger, *yaml_config.get_all_config().get("MARIADB").values()
     )
 
     results = mariadb_connection.execute_session_query(
-        sql_get_metric_eval_threshold_list, MetricType.MEMORY.value, 3
+        sql_get_metric_eval_threshold_list,
+        MetricType.MEMORY.value,
+        EvalType.COMMON.value,
     )
 
     metric_memory = None
@@ -150,7 +152,7 @@ def metric_memory_flow() -> None:
                 POINT_USED_PERCENT,
             )
 
-        # TODO alert_history에 결과 등록 필요
+        # alert_history에 결과 등록 필요
         if (
             eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
             > EvalResultType.OK.value

@@ -26,9 +26,9 @@ class MetricType(Enum):
 
 
 class EvalType(Enum):
-    XXX = 1
-    YYY = 2
-    COMMON = 3
+    COMMON = 1
+    XXX = 2
+    YYY = 3
 
 
 class MethodOperatorType(Enum):

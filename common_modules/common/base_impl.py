@@ -28,7 +28,6 @@ class Metric:
         eval_type_seq: int = 0,
         eval_type_name: str = "",
         operation_server_seq: int = 0,
-        operation_server_name: str = "",
         eval_value: int = 0,
         eval_operator_type_seq: int = 0,
         eval_operator_name: str = "",
@@ -40,7 +39,6 @@ class Metric:
         self.eval_type_seq = eval_type_seq
         self.eval_type_name = eval_type_name
         self.operation_server_seq = operation_server_seq
-        self.operation_server_name = operation_server_name
         self.eval_value = eval_value
         self.eval_operator_type_seq = eval_operator_type_seq
         self.eval_operator_name = eval_operator_name
@@ -55,7 +53,6 @@ class Metric:
             + f"eval_type_seq={self.eval_type_seq}, "
             + f"eval_type_name={self.eval_type_name}, "
             + f"operation_server_seq={self.operation_server_seq}, "
-            + f"operation_server_name={self.operation_server_name}, "
             + f"eval_value={self.eval_value}, "
             + f"eval_operator_type_seq={self.eval_operator_type_seq}, "
             + f"eval_operator_name={self.eval_operator_name}, "
@@ -75,7 +72,6 @@ def sql_get_metric_eval_threshold_list(
             TCodeEvalType.eval_type_seq,
             TCodeEvalType.name,
             TMetricEvalThreshold.operation_server_seq,
-            TOperationServer.name,
             TMetricEvalThreshold.eval_value,
             TMetricEvalThreshold.eval_operator_type_seq,
             TCodeEvalOperatorType.name,
@@ -94,11 +90,6 @@ def sql_get_metric_eval_threshold_list(
             TCodeEvalOperatorType,
             TMetricEvalThreshold.eval_operator_type_seq
             == TCodeEvalOperatorType.eval_operator_type_seq,
-        )
-        .join(
-            TOperationServer,
-            TMetricEvalThreshold.operation_server_seq
-            == TOperationServer.operation_server_seq,
         )
         .filter(TMetricEvalThreshold.metric_type_seq == metric_type_seq)
         .filter(TMetricEvalThreshold.eval_type_seq == eval_type_seq)
