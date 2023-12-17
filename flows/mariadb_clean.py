@@ -78,6 +78,8 @@ def mariadb_cleanup_flow() -> None:
 
     logger.info(f"Deleted rows : {deleted_rows}")
 
+    # TODO t_alert_history 삭제 로직 추가
+
 
 if __name__ == "__main__":
     mariadb_cleanup_flow()

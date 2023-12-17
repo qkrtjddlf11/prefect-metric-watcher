@@ -3,7 +3,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -186,3 +186,26 @@ class TOperationServer(Base):
     t_metric_eval_threshold = relationship(
         "TMetricEvalThreshold", back_populates="t_operation_server"
     )
+
+
+class TAlertHistory(Base):
+    __tablename__ = "t_alert_history"
+
+    alert_history_seq = Column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        comment="Alert History Sequence",
+    )
+    alert_content = Column(Text, default=None, comment="Alert Content")
+    alert_send_status = Column(
+        String(1), nullable=False, default="N", comment="Alert Send Status"
+    )
+    reg_datetime = Column(
+        DateTime,
+        nullable=False,
+        # default="current_timestamp()",
+        default=datetime.utcnow,
+        comment="Alert register datetime",
+    )
+    send_datetime = Column(DateTime, default=None, comment="Alert send datetime")

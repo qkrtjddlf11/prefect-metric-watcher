@@ -4,7 +4,6 @@
 
 import os
 import sys
-from datetime import datetime
 from platform import node, platform
 
 from prefect import context, flow, get_run_logger
@@ -15,11 +14,13 @@ from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
+from common_modules.alert.api import alert_send_api
 from common_modules.alert.slack import flow_failure_webhook
 from common_modules.common.base_impl import (
     Metric,
     sql_get_metric_eval_threshold_list,
-    sql_get_operation_server_list,
+    sql_insert_alert_history,
+    sql_insert_metric_eval_history,
 )
 from common_modules.common.util import create_basetime, update_point
 from common_modules.config.yaml_config import YamlConfig
@@ -27,22 +28,17 @@ from common_modules.data.comparison_operator import OperatorMapping
 from common_modules.data.data_velidator import verify_data
 from common_modules.db.influxdb.conn import InfluxDBConnection
 from common_modules.db.mariadb.conn import MariaDBConnection
-from common_modules.db.mariadb.metric_watcher_base import (
-    TCodeMetricEvalResultType,
-    TMetricEvalHistory,
-)
+from common_modules.db.mariadb.metric_watcher_base import TCodeMetricEvalResultType
 from common_modules.define.code import EvalResultType, EvalType, MetricType
-from common_modules.define.name import BASE_CONFIG_PATH, METRIC_DISK_ROOT_SCHEDULER_NAME
-from common_modules.generate.messages import generate_alert_messages
+from common_modules.define.name import (
+    BASE_CONFIG_PATH,
+    METRIC_DISK_ROOT_SCHEDULER_NAME,
+    POINT_USED_PERCENT,
+)
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
 GET_DISK_ROOT_USED_PERCENT_QUERY = """SELECT time, host, used_percent FROM disk 
     WHERE time > now() - 2m and path = '/' group by host limit 1"""
-
-# Disk Point Values
-POINT_TIME_NAME = "time"
-POINT_HOST_NAME = "host"
-POINT_USED_PERCENT = "used_percent"
 
 
 def generate_flow_run_name() -> str:
@@ -145,22 +141,13 @@ def metric_disk_root_flow() -> None:
     for eval_point in metric_disk_root.eval_point_group_list:
         # TODO 관제 해야 할 서버의 개수가 많아질 경우 session.add_all로 변경 필요할 수도..
         with mariadb_connection.get_resources() as session:
-            new_entry = TMetricEvalHistory(
-                metric_eval_threshold_seq=metric_disk_root.metric_eval_threshold_seq,
-                metric_eval_result_seq=eval_point[
-                    TCodeMetricEvalResultType.metric_eval_result_seq.name
-                ],
-                operation_server_seq=mariadb_connection.execute_session_query(
-                    sql_get_operation_server_list, eval_point.get(POINT_HOST_NAME)
-                ),
-                metric_eval_result_value=eval_point.get(POINT_USED_PERCENT),
-                timestamp=datetime.strptime(
-                    eval_point[POINT_TIME_NAME], "%Y-%m-%dT%H:%M:%SZ"
-                ),
+            sql_insert_metric_eval_history(
+                mariadb_connection,
+                session,
+                metric_disk_root.metric_eval_threshold_seq,
+                eval_point,
+                POINT_USED_PERCENT,
             )
-
-            session.add(new_entry)
-            session.commit()
 
         # TODO alert_history에 결과 등록 필요
         if (
@@ -171,10 +158,11 @@ def metric_disk_root_flow() -> None:
                 eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
                 == EvalResultType.ALERT.value
             ):
-                generated_messages = generate_alert_messages(
+                generated_messages, alert_send_result = alert_send_api(
                     metric_disk_root, eval_point
                 )
-                print(generated_messages)
+                sql_insert_alert_history(session, generated_messages, alert_send_result)
+
             elif (
                 eval_point.get(TCodeMetricEvalResultType.metric_eval_result_seq.name)
                 == EvalResultType.SNOOZE.value

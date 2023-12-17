@@ -14,3 +14,10 @@ METRIC_DISK_ROOT_SCHEDULER_NAME = "prefect_metric_disk_root_scheduler"
 # Prefect Varaiables
 PREFECT_POSTGRES_AFTER_DAYS_NAME = "prefect_postrgres_after_days"
 MARIADB_AFTER_DAYS_NAME = "mariadb_after_days"
+
+# Common valuables
+POINT_TIME_NAME = "time"
+POINT_HOST_NAME = "host"
+
+POINT_USED_PERCENT = "used_percent"
+POINT_USAGE_PERCENT = "usage_percent"
