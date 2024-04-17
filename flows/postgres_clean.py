@@ -90,6 +90,7 @@ def postgres_cleanup_flow() -> None:
                 delete_query_list = [
                     f"DELETE FROM flow_run WHERE id IN ({placeholders})",
                     f"DELETE FROM log WHERE flow_run_id IN ({placeholders})",
+                    f"DELETE FROM artifact WHERE flow_run_id IN ({placeholders})",
                 ]
 
                 for delete_query in delete_query_list:
