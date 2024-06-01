@@ -4,9 +4,8 @@ import os
 import sys
 
 from prefect import Flow, get_run_logger
-from prefect.blocks.system import Secret
-from prefect.runner.storage import RemoteStorage
 from prefect.server.schemas.schedules import CronSchedule
+from prefect_aws import S3Bucket, MinIOCredentials, AwsClientParameters
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
@@ -18,21 +17,27 @@ from common_modules.define.name import (
 from flows.hello import hello_flow
 
 
-def get_remote_storage() -> RemoteStorage:
-    storage = RemoteStorage(
-        url="s3://prefect-metric-watcher/my-folder",
-        # Use Secret blocks to keep credentials out of your code
-        key=Secret.load("prefect-metric-watcher-access-key").get(),
-        secret=Secret.load("prefect-metric-watcher-secret-key").get(),
+def get_remote_storage() -> S3Bucket:
+    storage = S3Bucket(
+        bucket_name="prefect-metric-watcher",
+        bucket_folder="prefect-metric-watcher",
+        credentials=MinIOCredentials(
+            minio_root_user="admin",
+            minio_root_password="2428skaduzl",
+            aws_client_parameters=AwsClientParameters(
+                endpoint_url="http://172.30.1.170:9000"
+            ),
+        ),
     )
-    storage.pull_code()
+
+    storage.get_directory()
 
     return storage
 
 
 if __name__ == "__main__":
     hello_flow_from_source: Flow = hello_flow.from_source(
-        source=get_remote_storage(), entrypoint=""
+        source=get_remote_storage(), entrypoint="flows/hello.py:hello_flow"
     )
     hello_flow_uuid = hello_flow_from_source.deploy(
         name=f"run_{HELLO_SCHEDULER_NAME}_flow",
