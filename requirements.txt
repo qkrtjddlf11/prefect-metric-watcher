@@ -5,3 +5,4 @@ prefect==2.19.3
 prefect-aws==0.4.17
 prefect-docker==0.5.2
 psycopg2-binary==2.9.9
+s3fs==2024.5.0
