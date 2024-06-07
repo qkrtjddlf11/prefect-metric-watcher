@@ -31,3 +31,12 @@ METRIC_WATCHER_DOCKER_POOL_NAME = "METRIC_WATCHER_DOCKER_POOL"
 # Queue Name
 METRIC_WATCHER_QUEUE_NAME = "METRIC_WATCHER_QUEUE"
 METRIC_WATCHER_DOCKER_QUEUE_NAME = "METRIC_WATCHER_DOCKER_QUEUE"
+
+
+class PrefectBlockName:
+    CODE_STORAGE_URL: str = "code-storage-url"
+    CODE_STORAGE_ACCESS_KEY: str = "code-storage-access-key"
+    CODE_STORAGE_SECRET_KEY: str = "code-storage-secret-key"
+
+    GITHUB_URL: str = "github-url"
+    GITHUB_ACCESS_TOKEN: str = "github-access-token"

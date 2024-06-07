@@ -6,7 +6,7 @@ import sys
 from prefect import Flow
 from prefect.client.schemas.schedules import CronSchedule
 from prefect.runner.storage import GitRepository
-from prefect.blocks.system import Secret
+from prefect.blocks.system import Secret, String
 from prefect_docker.worker import ImagePullPolicy
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
@@ -15,6 +15,7 @@ from common_modules.define.name import (
     HELLO_SCHEDULER_NAME,
     METRIC_WATCHER_DOCKER_POOL_NAME,
     METRIC_WATCHER_DOCKER_QUEUE_NAME,
+    PrefectBlockName,
 )
 from flows.hello import hello_flow
 
@@ -22,8 +23,10 @@ from flows.hello import hello_flow
 if __name__ == "__main__":
     hello_flow_from_source: Flow = hello_flow.from_source(
         source=GitRepository(
-            url="https://github.com/qkrtjddlf11/prefect-metric-watcher.git",
-            credentials={"access_token": Secret.load("github-access-token")},
+            url=String.load(PrefectBlockName.CODE_STORAGE_URL).value,
+            credentials={
+                "access_token": Secret.load(PrefectBlockName.GITHUB_ACCESS_TOKEN)
+            },
         ),
         entrypoint="flows/hello.py:hello_flow",
     )
