@@ -1,4 +1,4 @@
-# pylint: disable=C0114, C0115, C0116, C0413
+# pylint: disable=C0114, C0115, C0116, C0413, C0412
 # coding: utf-8
 import os
 import sys
@@ -8,6 +8,7 @@ from prefect.client.schemas.schedules import CronSchedule
 from prefect.runner.storage import GitRepository
 from prefect.blocks.system import Secret, String
 from prefect_docker.worker import ImagePullPolicy
+from prefect.deployments.runner import DeploymentImage
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
@@ -21,9 +22,15 @@ from flows.hello import hello_flow
 
 
 if __name__ == "__main__":
+    # TODO
+    # Private Registry를 운영중이라면 push를 True로 바꾸고
+    # job_variables에서 Registry 정보를 넣어주면 Image Build와 Push를 한줄의 명령어로 가능하다. (현재는 로컬 장비에 빌드만 수행)
+    with open("VERSION", mode="r", encoding="utf-8") as f:
+        version = f.readline().strip()
+
     hello_flow_from_source: Flow = hello_flow.from_source(
         source=GitRepository(
-            url=String.load(PrefectBlockName.CODE_STORAGE_URL).value,
+            url=String.load(PrefectBlockName.GITHUB_URL).value,
             credentials={
                 "access_token": Secret.load(PrefectBlockName.GITHUB_ACCESS_TOKEN)
             },
@@ -33,8 +40,10 @@ if __name__ == "__main__":
 
     hello_flow_uuid = hello_flow_from_source.deploy(
         name=f"run_{HELLO_SCHEDULER_NAME}_flow",
-        image="prefecthq/prefect:2.19.3-python3.11",
-        build=False,
+        image=DeploymentImage(
+            name="prefect-metric-watcher", dockerfile="Dockerfile", tag=version
+        ),
+        build=True,
         push=False,
         job_variables={
             "auto_remove": True,

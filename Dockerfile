@@ -1,4 +1,4 @@
-FROM prefecthq/prefect:2.19.3-python3.11
+FROM prefecthq/prefect:2.19.4-python3.11
 
 COPY requirements.txt .
 
