@@ -7,9 +7,9 @@ from prefect import Flow
 from prefect.blocks.system import Secret, String
 from prefect.client.schemas.schedules import CronSchedule
 from prefect.deployments.runner import DeploymentImage
+from prefect.docker.docker_image import DockerImage
 from prefect.runner.storage import GitRepository
 from prefect_docker.worker import ImagePullPolicy
-from prefect.docker.docker_image import DockerImage
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 

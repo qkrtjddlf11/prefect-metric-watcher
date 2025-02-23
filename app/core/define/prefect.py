@@ -13,4 +13,4 @@ class Blocks:
 
 
 class Variables:
-    PASSED_X_DAYS: str = "passed_x_days"
+    X_DAYS_BEFORE: str = "x_days_before"
