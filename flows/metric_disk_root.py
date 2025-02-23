@@ -24,7 +24,7 @@ from common_modules.common.base_impl import (
 )
 from common_modules.common.util import create_basetime, update_point
 from common_modules.config.yaml_config import YamlConfig
-from common_modules.data.comparison_operator import OperatorMapping
+from app.core.evaluation.comparison_operator import OperatorMapping
 from common_modules.data.data_velidator import verify_data
 from common_modules.db.influxdb.conn import InfluxDBConnection
 from common_modules.db.mariadb.conn import MariaDBConnection

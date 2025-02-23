@@ -1,0 +1,52 @@
+# pylint: disable=C0114, C0115, C0116, C0413, C0412
+# coding: utf-8
+import os
+import sys
+
+from prefect import Flow
+from prefect.client.schemas.schedules import CronSchedule
+from prefect.docker.docker_image import DockerImage
+from prefect_aws.s3 import S3Bucket
+from prefect_docker.worker import ImagePullPolicy
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+
+from app.core.define.flows import PostgreSQLManager
+from app.core.define.prefect import Blocks
+from app.flows.postgres_clean import postgres_clean_flow
+
+VERSION = "v0.0.1"
+
+
+if __name__ == "__main__":
+    s3_bucket = S3Bucket.load(Blocks.S3Bucket.MINIO_STORAGE_CODE_NAME)
+
+    postgres_clean_flow_from_source: Flow = postgres_clean_flow.from_source(
+        source=s3_bucket,
+        entrypoint="app/flows/postgres_clean.py:postgres_clean_flow",
+    )
+
+    postgres_clean_flow_uuid = postgres_clean_flow_from_source.deploy(
+        name=f"{PostgreSQLManager.Flows.POSTGRES_CLEAN_FLOW_NAME}_deployment",
+        image=DockerImage(
+            name="prefect-metric-watcher", tag=VERSION, dockerfile="Dockerfile"
+        ),
+        build=True,
+        push=False,
+        job_variables={
+            "auto_remove": True,
+            "image_pull_policy": ImagePullPolicy.IF_NOT_PRESENT,
+            "privileged": True,
+            "network_mode": "host",
+        },
+        parameters={"name": "Marvin"},
+        tags=[PostgreSQLManager.Flows.POSTGRES_CLEAN_FLOW_NAME],
+        work_pool_name=PostgreSQLManager.POOL_NAME,
+        work_queue_name=PostgreSQLManager.QUEUE_NAME,
+        schedule=CronSchedule(cron="0 4 * * *", timezone="UTC"),
+        description="PostgreSQL cleanup deployment for Infrastructure Docker Container based flow",
+    )
+
+    print(
+        f"{PostgreSQLManager.Flows.POSTGRES_CLEAN_FLOW_NAME}_uuid: {postgres_clean_flow_uuid}"
+    )

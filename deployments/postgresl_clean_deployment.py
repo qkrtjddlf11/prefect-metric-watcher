@@ -19,7 +19,7 @@ deployment = Deployment.build_from_flow(
     work_pool_name="METRIC_WATCHER_POSTGRES_MANAGEMENT_POOL",
     work_queue_name="METRIC_WATCHER_POSTGRES_MANAGEMENT_QUEUE",
     path="/opt/prefect/",
-    schedule=(CronSchedule(cron="0 0 * * *", timezone="UTC")),
+    schedule=(CronSchedule(cron="0 4 * * *", timezone="UTC")),
 )
 
 if __name__ == "__main__":

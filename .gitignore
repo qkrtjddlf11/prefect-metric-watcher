@@ -1,9 +1,4 @@
 __pycache__/
 bin
 lib
-<<<<<<< HEAD
 pyvenv.cfg
-include
-=======
-pyvenv.cfg
->>>>>>> d374aa3c00de344e69920ed9cfb2cba063090f15

@@ -4,11 +4,12 @@ import os
 import sys
 
 from prefect import Flow
-from prefect.client.schemas.schedules import CronSchedule
-from prefect.runner.storage import GitRepository
 from prefect.blocks.system import Secret, String
-from prefect_docker.worker import ImagePullPolicy
+from prefect.client.schemas.schedules import CronSchedule
 from prefect.deployments.runner import DeploymentImage
+from prefect.runner.storage import GitRepository
+from prefect_docker.worker import ImagePullPolicy
+from prefect.docker.docker_image import DockerImage
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
@@ -19,7 +20,6 @@ from common_modules.define.name import (
     PrefectBlockName,
 )
 from flows.hello import hello_flow
-
 
 if __name__ == "__main__":
     # TODO
