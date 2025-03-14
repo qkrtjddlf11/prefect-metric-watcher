@@ -11,9 +11,9 @@ from prefect_docker.worker import ImagePullPolicy
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from app.core.define.flows import PostgreSQLManager
+from app.core.define.flows import MetricWatcher
 from app.core.define.prefect import Blocks
-from app.flows.postgres_clean import postgres_clean_flow
+from app.flows.cpu_used_percent import cpu_used_percent_flow
 
 VERSION = "v0.0.1"
 
@@ -21,12 +21,12 @@ VERSION = "v0.0.1"
 if __name__ == "__main__":
     s3_bucket = S3Bucket.load(Blocks.S3Bucket.MINIO_STORAGE_CODE_NAME)
 
-    from_source: Flow = postgres_clean_flow.from_source(
+    from_source: Flow = cpu_used_percent_flow.from_source(
         source=s3_bucket,
-        entrypoint="app/flows/postgres_clean.py:postgres_clean_flow",
+        entrypoint="app/flows/cpu_used_percent.py:cpu_used_percent_flow",
     )
 
-    flow_name = PostgreSQLManager.Flows.POSTGRES_CLEAN_FLOW_NAME
+    flow_name = MetricWatcher.Flows.CPU_USED_PERCENT_FLOW_NAME
 
     flow_uuid = from_source.deploy(
         name=f"{flow_name}_deployment",
@@ -42,10 +42,10 @@ if __name__ == "__main__":
             "network_mode": "host",
         },
         tags=[flow_name],
-        work_pool_name=PostgreSQLManager.POOL_NAME,
-        work_queue_name=PostgreSQLManager.QUEUE_NAME,
-        schedule=CronSchedule(cron="0 4 * * *", timezone="UTC"),
-        description="Docker-based infrastructure flow for PostgreSQL cleanup.",
+        work_pool_name=MetricWatcher.POOL_NAME,
+        work_queue_name=MetricWatcher.QUEUE_NAME,
+        schedule=CronSchedule(cron="* * * * *", timezone="UTC"),
+        description="Docker-based infrastructure flow for CPU monitoring",
     )
 
     print(f"{flow_name}_uuid: {flow_uuid}")

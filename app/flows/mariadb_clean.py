@@ -19,9 +19,11 @@ from common_modules.common.base_impl import sql_delete_metric_eval_history
 from common_modules.common.util import create_basetime, get_after_days
 from common_modules.config.yaml_config import YamlConfig
 from common_modules.db.mariadb.conn import MariaDBConnection
-from common_modules.define.name import (BASE_CONFIG_PATH,
-                                        MARIADB_AFTER_DAYS_NAME,
-                                        MARIADB_SCHEDULER_NAME)
+from common_modules.define.name import (
+    BASE_CONFIG_PATH,
+    MARIADB_AFTER_DAYS_NAME,
+    MARIADB_SCHEDULER_NAME,
+)
 
 
 def generate_flow_run_name() -> str:

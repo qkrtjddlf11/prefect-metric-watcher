@@ -1,20 +1,20 @@
-INFLUXDB:
-  HOST: 172.30.1.140
-  PORT: 8086
-  USER: influx
-  PASSWORD: influx
-  DB_NAME: telegraf
+influxdb:
+  host: 172.30.1.140
+  port: 8086
+  username: influx
+  password: influx
+  db_name: telegraf
 
-MARIADB:
-  HOST: 172.30.1.140
-  PORT: 3306
-  USER: root
-  PASSWORD: root
-  DB_NAME: metric_watcher
+mariadb:
+  host: 172.30.1.140
+  port: 3306
+  username: prefect
+  password: prefect
+  db_name: prefect_metric_watcher
 
-POSTGRESQLDB:
-  HOST: 172.30.1.140
-  PORT: 5432
-  USER: prefect
-  PASSWORD: prefect
-  DB_NAME: prefect
+postgresql:
+  host: 172.30.1.140
+  port: 5432
+  username: prefect
+  password: prefect
+  db_name: prefect

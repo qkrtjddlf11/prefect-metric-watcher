@@ -18,11 +18,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 
 from app.core.config.yaml import YamlConfig
 from app.core.db.postgresql.conn import PostgreSQLConnection
-from app.core.db.postgresql.prefect_base import (
-    Artifact,
-    FlowRun,
-    Log,
-)
+from app.core.db.postgresql.prefect_base import Artifact, FlowRun, Log
 from app.core.define.base import Path
 from app.core.define.flows import PostgreSQLManager
 from app.core.define.prefect import Variables

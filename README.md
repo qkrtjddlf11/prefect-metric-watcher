@@ -4,10 +4,12 @@
 # How to create work-pool
 prefect work-pool create METRIC_WATCHER_POOL -t docker
 prefect work-pool create POSTGRESQL_MANAGER_POOL -t docker
+prefect work-pool create CPU_USED_PERCENT_POOL -t docker
 
 # How to create work-queue
 prefect work-queue create METRIC_WATCHER_QUEUE -p METRIC_WATCHER_POOL
 prefect work-queue create POSTGRESQL_MANAGER_QUEUE -p POSTGRESQL_MANAGER_POOL
+prefect work-queue create CPU_USED_PERCENT_QUEUE -p CPU_USED_PERCENT_POOL
 
 # Deploy your flow (You need to run project home)
 python3.11 app/deployments/hello_deployment.py

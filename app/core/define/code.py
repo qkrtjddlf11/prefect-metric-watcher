@@ -30,6 +30,6 @@ class EvaluateTargetType(Enum):
 
 
 class MetricType(Enum):
-    CPU_USED_PERCENT: 1
-    MEMORY_USED_PERCENT: 2
-    DISK_USED_PERCENT_ROOT: 3
+    CPU_USED_PERCENT = 1
+    MEMORY_USED_PERCENT = 2
+    DISK_USED_PERCENT_ROOT = 3

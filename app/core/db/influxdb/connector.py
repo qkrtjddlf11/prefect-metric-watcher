@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from influxdb import InfluxDBClient, exceptions
 
 
-class InfluxDBConnection:
+class InfluxDBConnector:
     """
     InfluxDB Connection Class
     """
@@ -21,14 +21,14 @@ class InfluxDBConnection:
         port=8086,
         username="root",
         password="root",
-        database="influx",
+        db_name="influx",
     ) -> None:
         self.logger = logger
         self.host = host
         self.port = port
         self.username = username
         self.password = password
-        self.database = database
+        self.db_name = db_name
         self.conn = self._create_connection()
 
     def _create_connection(self) -> InfluxDBClient:
@@ -37,7 +37,7 @@ class InfluxDBConnection:
             port=self.port,
             username=self.username,
             password=self.password,
-            database=self.database,
+            database=self.db_name,
             timeout=1,
             retries=5,
         )
@@ -52,9 +52,6 @@ class InfluxDBConnection:
         finally:
             self.conn.close()
 
-    def generate_sql_statements(self):
-        pass
-
     def __str__(self) -> str:
         return (
             "Connection Info :\n"
@@ -62,5 +59,5 @@ class InfluxDBConnection:
             + f"\tport={self.port}\n"
             + f"\tusername={self.username}\n"
             + f"\tpassword={self.password}\n"
-            + f"\tdatabase={self.database}"
+            + f"\tdatabase={self.db_name}"
         )
