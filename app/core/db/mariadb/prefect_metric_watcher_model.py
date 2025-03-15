@@ -1,3 +1,5 @@
+from unittest import result
+
 from sqlalchemy import TIMESTAMP, BigInteger, Column, ForeignKey, Integer, String, func
 from sqlalchemy.orm import registry
 
@@ -5,7 +7,7 @@ mapper_registry = registry()
 
 
 @mapper_registry.mapped
-class AlertGmail:
+class TAlertGmail:
     __tablename__ = "t_alert_gmail"
 
     alert_gmail_seq = Column(
@@ -48,7 +50,7 @@ class AlertGmail:
 
 
 @mapper_registry.mapped
-class CodeAlertType:
+class TCodeAlertType:
     __tablename__ = "t_code_alert_type"
 
     alert_type_seq = Column(
@@ -58,7 +60,7 @@ class CodeAlertType:
 
 
 @mapper_registry.mapped
-class CodeAlertSendResultType:
+class TCodeAlertSendResultType:
     __tablename__ = "t_code_alert_send_result_type"
 
     alert_send_result_type_seq = Column(
@@ -79,7 +81,7 @@ class CodeAlertSendResultType:
 
 
 @mapper_registry.mapped
-class EvaluateFlow:
+class TEvaluateFlow:
     __tablename__ = "t_evaluate_flow"
 
     evaluate_flow_seq = Column(
@@ -129,7 +131,27 @@ class EvaluateFlow:
 
 
 @mapper_registry.mapped
-class EvaluateResultHistory:
+class TCodeEvaluateResultType:
+    __tablename__ = "t_code_evaluate_result_type"
+
+    evaluate_result_type_seq = Column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        comment="Evaluate result type sequence",
+    )
+    name = Column(
+        String(10),
+        nullable=False,
+        comment="Evalueate result type name",
+    )
+    description = Column(
+        String(100), nullable=True, comment="Evaluate result type description"
+    )
+
+
+@mapper_registry.mapped
+class TEvaluateResultHistory:
     __tablename__ = "t_evaluate_result_history"
 
     alert_history_seq = Column(
@@ -150,6 +172,7 @@ class EvaluateResultHistory:
         nullable=False,
         comment="Evaluate result type sequence",
     )
+    result_value = Column(BigInteger, nullable=False, comment="Result value")
     node_id = Column(
         String(10), ForeignKey("t_node.node_id"), nullable=False, comment="Node id"
     )
@@ -162,7 +185,7 @@ class EvaluateResultHistory:
 
 
 @mapper_registry.mapped
-class CodeComparisonOperatorType:
+class TCodeComparisonOperatorType:
     __tablename__ = "t_code_comparison_operator_type"
 
     comparison_operator_type_seq = Column(
@@ -173,7 +196,7 @@ class CodeComparisonOperatorType:
 
 
 @mapper_registry.mapped
-class CodeMetricType:
+class TCodeMetricType:
     __tablename__ = "t_code_metric_type"
 
     metric_type_seq = Column(
@@ -184,7 +207,7 @@ class CodeMetricType:
 
 
 @mapper_registry.mapped
-class CodeEvaluateTargetType:
+class TCodeEvaluateTargetType:
     __tablename__ = "t_code_evaluate_target_type"
 
     evaluate_target_type_seq = Column(
@@ -200,7 +223,7 @@ class CodeEvaluateTargetType:
 
 
 @mapper_registry.mapped
-class Node:
+class TNode:
     __tablename__ = "t_node"
 
     node_id = Column(String(5), primary_key=True, comment="Node id")
@@ -225,7 +248,7 @@ class Node:
 
 
 @mapper_registry.mapped
-class Server:
+class TServer:
     __tablename__ = "t_server"
 
     server_id = Column(String(10), primary_key=True, comment="Server ID")

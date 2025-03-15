@@ -34,6 +34,9 @@ class EvaluateFlows(BaseModel):
 
 class EvaluateResultHistory(BaseModel):
     evaluate_flow_seq: int = Field(..., description="Evaluate flow sequence")
-    evaluate_result_type_seq: int
-    node_id: str
-    server_id: str
+    evaluate_result_type_seq: int = Field(
+        ..., description="Evaluate result type sequence"
+    )
+    result_value: float = Field(..., description="Result value")
+    node_id: str = Field(..., description="Node ID")
+    server_id: str = Field(..., description="Server ID")

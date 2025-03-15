@@ -17,13 +17,17 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from app.core.config.yaml import YamlConfig
 from app.core.db.influxdb.connector import InfluxDBConnector
 from app.core.define.base import Path
-from app.core.define.code import EvaluateResultType
+from app.core.define.code import EvaluateResultType, EvaluateTargetType, MetricType
 from app.core.define.flows import MetricWatcher
 from app.core.define.tasks import CpuUsedPercent
 from app.core.evaluation.comparison_operator import OperatorMapping
 from app.core.schemas.influxdb.metric import UsedPercentPoint
 from app.core.schemas.mariadb.metric import EvaluateFlows, EvaluateResultHistory
-from app.utils.db import get_connectors, get_evaluate_flows
+from app.utils.db import (
+    get_connectors,
+    get_evaluate_flows,
+    insert_evaluate_result_history,
+)
 from app.utils.time import create_basetime, get_run_datetime
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
@@ -53,10 +57,6 @@ def generate_flow_run_name() -> str:
     return flow_run_name
 
 
-def update_evaluate_result_history():
-    pass
-
-
 @task(
     name=CpuUsedPercent.Tasks.COMPARE_CPU_USED_PERCENT_NAME,
     task_run_name=f"{CpuUsedPercent.Tasks.COMPARE_CPU_USED_PERCENT_NAME}_{get_run_datetime()}",
@@ -73,6 +73,7 @@ def compare_cpu_used_percent(
         EvaluateResultHistory(
             evaluate_flow_seq=evaluate_flow.evaluate_flow_seq,
             evaluate_result_type_seq=EvaluateResultType.CRITICAL.value,
+            result_value=round(point.usage_percent, 2),
             node_id=point.node_id,
             server_id=point.server_id,
         )
@@ -129,16 +130,25 @@ def cpu_used_percent_flow() -> None:
         raise
 
     mariadb_connector, influxdb_connector = get_connectors(logger, yaml_config)
-
     used_percent_points = get_cpu_points.submit(logger, influxdb_connector).result()
 
-    evaluate_flow = get_evaluate_flows(mariadb_connector)
+    logger.info("used_percent_points: %s. ✅", used_percent_points)
+
+    evaluate_flow = get_evaluate_flows(
+        mariadb_connector,
+        MetricType.CPU_USED_PERCENT.value,
+        EvaluateTargetType.COMMON.value,
+    )
+
+    logger.info("evaluate_flow: %s. ✅", evaluate_flow)
+
     evaluate_result_histories = compare_cpu_used_percent.submit(
         evaluate_flow, used_percent_points
     ).result()
 
-    for history in evaluate_result_histories:
-        print(history)
+    logger.info("evaluate_result_histories: %s. ✅", evaluate_result_histories)
+
+    insert_evaluate_result_history(mariadb_connector, evaluate_result_histories)
 
 
 if __name__ == "__main__":
