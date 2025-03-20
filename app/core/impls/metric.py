@@ -3,7 +3,6 @@
 
 from datetime import datetime
 
-from sqlalchemy import Row, func
 from sqlalchemy.orm import Session, scoped_session
 
 from app.core.db.mariadb.prefect_metric_watcher_model import (
@@ -65,3 +64,15 @@ def sql_insert_evaluate_result_history(
 ) -> None:
     session.bulk_insert_mappings(TEvaluateResultHistory, evaluate_result_histories)
     session.commit()
+
+
+def sql_delete_evaluate_result_history(
+    session: scoped_session[Session], x_days_before: datetime
+) -> int:
+    deleted_rows = (
+        session.query(TEvaluateResultHistory)
+        .filter(TEvaluateResultHistory.timestamp < x_days_before)
+        .delete()
+    )
+    session.commit()
+    return deleted_rows

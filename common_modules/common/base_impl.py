@@ -113,18 +113,6 @@ def sql_get_operation_server_list(session, operation_server_name: str) -> int:
     return result.operation_server_seq
 
 
-def sql_delete_metric_eval_history(session, after_days) -> int:
-    deleted_rows = (
-        session.query(TMetricEvalHistory)
-        .filter(TMetricEvalHistory.timestamp < after_days)
-        .delete()
-    )
-
-    session.commit()
-
-    return deleted_rows
-
-
 def sql_insert_metric_eval_history(
     mariadb_connection,
     session,

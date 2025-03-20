@@ -5,26 +5,27 @@ import logging
 import time
 from contextlib import contextmanager
 
+from pydantic.types import SecretStr
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
 
-class PostgreSQLConnection:
+class PostgreSQLConnector:
     def __init__(
         self,
         logger: logging.Logger,
-        host="localhost",
-        port=5432,
-        username="postgres",
-        password="postgres",
-        db="prefect",
+        host: str,
+        port: str,
+        username: str,
+        password: SecretStr,
+        db_name: str,
         max_retries=65535,
         retry_interval=5,
         pool_size=1,
     ):
         self.logger = logger
-        self.db_url = f"postgresql://{username}:{password}@{host}:{port}/{db}"
+        self.db_url = f"postgresql://{username}:{password.get_secret_value()}@{host}:{port}/{db_name}"
         self.max_retries = max_retries
         self.retry_interval = retry_interval
         self.engine = create_engine(

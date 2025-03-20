@@ -15,7 +15,7 @@ from sqlalchemy import (
     UniqueConstraint,
     desc,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSON, JSONB, UUID
 from sqlalchemy.orm import registry
 
 mapper_registry = registry()

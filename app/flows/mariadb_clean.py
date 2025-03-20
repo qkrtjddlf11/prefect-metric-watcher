@@ -1,29 +1,25 @@
 # pylint: disable=C0114, C0115, C0116
 # coding: utf-8
 
-# TODO
-# MariaDB의 디스크 관리를 위해 주기적으로 History 데이터를 삭제해줘야 한다.
-
+import logging
 import os
 import sys
 from platform import node, platform
 
-from prefect import context, flow, get_run_logger
+from prefect import context, flow, get_run_logger, task
 from prefect.runtime import flow_run
-from prefect.task_runners import SequentialTaskRunner
-from yaml import YAMLError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
-from common_modules.common.base_impl import sql_delete_metric_eval_history
-from common_modules.common.util import create_basetime, get_after_days
-from common_modules.config.yaml_config import YamlConfig
-from common_modules.db.mariadb.conn import MariaDBConnection
-from common_modules.define.name import (
-    BASE_CONFIG_PATH,
-    MARIADB_AFTER_DAYS_NAME,
-    MARIADB_SCHEDULER_NAME,
-)
+from app.core.config.yaml import get_yaml_config
+from app.core.db.mariadb.connector import MariaDBConnector
+from app.core.define.base import Path
+from app.core.define.flows import MariaDBManager
+from app.core.define.prefect import Variables
+from app.core.define.tasks import MariadbClean
+from app.core.impls.metric import sql_delete_evaluate_result_history
+from app.utils.prefect import get_before_days
+from app.utils.time import create_basetime
 
 
 def generate_flow_run_name() -> str:
@@ -44,14 +40,32 @@ def generate_flow_run_name() -> str:
     return flow_run_name
 
 
+@task(
+    name=MariadbClean.Tasks.CLEANUP_MARIADB_TABLES_NAME,
+    task_run_name=f"{MariadbClean.Tasks.CLEANUP_MARIADB_TABLES_NAME}_{create_basetime()}",
+    retries=3,
+    retry_delay_seconds=5,
+    description="Cleanup mariadb tables",
+)
+def cleanup_mariadb_tables(
+    logger: logging.Logger, mariadb_connector: MariaDBConnector
+) -> None:
+    deleted_rows = mariadb_connector.execute_session_query(
+        sql_delete_evaluate_result_history, get_before_days(Variables.X_DAYS_BEFORE)
+    )
+
+    logger.info(f"Deleted rows : {deleted_rows}")
+
+    # TODO t_alert_history 삭제 로직 추가
+
+
 @flow(
-    name=MARIADB_SCHEDULER_NAME,
+    name=MariaDBManager.Flows.MARIADB_CLEAN_FLOW_NAME,
     flow_run_name=generate_flow_run_name,
     retries=3,
     retry_delay_seconds=5,
     description="Prefect agent module for clean up mariadb",
     timeout_seconds=5,
-    task_runner=SequentialTaskRunner(),
 )
 def mariadb_cleanup_flow() -> None:
     logger = get_run_logger()
@@ -59,26 +73,13 @@ def mariadb_cleanup_flow() -> None:
     logger.info("Network: %s. ✅", node())
     logger.info("Instance: %s. ✅", platform())
 
-    try:
-        yaml_config = YamlConfig(logger=logger, config_path=BASE_CONFIG_PATH)
-    except FileNotFoundError as err:
-        logger.error("File Not Found : %s", str(err))
-        raise
-    except YAMLError as err:
-        logger.error("Yaml load Error : %s", str(err))
-        raise
+    yaml_config = get_yaml_config(logger, Path.CONFIG_PATH)
 
-    mariadb_connection = MariaDBConnection(
-        logger, *yaml_config.get_all_config().get("MARIADB").values()
-    )
+    mariadb_connector = MariaDBConnector(logger, **yaml_config.mariadb.model_dump())
 
-    deleted_rows = mariadb_connection.execute_session_query(
-        sql_delete_metric_eval_history, get_after_days(MARIADB_AFTER_DAYS_NAME)
-    )
+    cleanup_mariadb_tables(logger, mariadb_connector)
 
-    logger.info(f"Deleted rows : {deleted_rows}")
-
-    # TODO t_alert_history 삭제 로직 추가
+    logger.info("Cleanup mariadb tables. ✅")
 
 
 if __name__ == "__main__":

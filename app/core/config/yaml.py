@@ -1,10 +1,12 @@
 # pylint: disable=C0114, C0115, C0116
 # coding: utf-8
 
+import logging
 from pathlib import Path
 
 import yaml
 from pydantic import BaseModel, Field, SecretStr
+from yaml import YAMLError
 
 
 class InfluxDBConfig(BaseModel):
@@ -47,3 +49,15 @@ class YamlConfig(BaseModel):
             config = yaml.safe_load(f)
 
         return cls(**config)
+
+
+def get_yaml_config(logger: logging.Logger, base_path: str, mode="dev") -> YamlConfig:
+    try:
+        yaml_config = YamlConfig.load_yaml(base_path=base_path, mode=mode)
+    except FileNotFoundError as err:
+        logger.error("File Not Found : %s", str(err))
+        raise
+    except YAMLError as err:
+        logger.error("Yaml load Error : %s", str(err))
+        raise
+    return yaml_config

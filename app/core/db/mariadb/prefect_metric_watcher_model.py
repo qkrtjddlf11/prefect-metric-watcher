@@ -1,5 +1,3 @@
-from unittest import result
-
 from sqlalchemy import TIMESTAMP, BigInteger, Column, ForeignKey, Integer, String, func
 from sqlalchemy.orm import registry
 
@@ -181,6 +179,12 @@ class TEvaluateResultHistory:
         ForeignKey("t_server.server_id"),
         nullable=False,
         comment="Server id",
+    )
+    timestamp = Column(
+        TIMESTAMP,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        comment="Alert history timestamp",
     )
 
 
