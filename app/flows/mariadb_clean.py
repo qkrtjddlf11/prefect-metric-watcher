@@ -6,10 +6,10 @@ import os
 import sys
 from platform import node, platform
 
-from prefect import context, flow, get_run_logger, task
+from prefect import cache_policies, context, flow, get_run_logger, task
 from prefect.runtime import flow_run
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 from app.core.config.yaml import get_yaml_config
 from app.core.db.mariadb.connector import MariaDBConnector
@@ -19,7 +19,7 @@ from app.core.define.prefect import Variables
 from app.core.define.tasks import MariadbClean
 from app.core.impls.metric import sql_delete_evaluate_result_history
 from app.utils.prefect import get_before_days
-from app.utils.time import create_basetime
+from app.utils.time import create_basetime, get_run_datetime
 
 
 def generate_flow_run_name() -> str:
@@ -42,9 +42,10 @@ def generate_flow_run_name() -> str:
 
 @task(
     name=MariadbClean.Tasks.CLEANUP_MARIADB_TABLES_NAME,
-    task_run_name=f"{MariadbClean.Tasks.CLEANUP_MARIADB_TABLES_NAME}_{create_basetime()}",
+    task_run_name=f"{MariadbClean.Tasks.CLEANUP_MARIADB_TABLES_NAME}_{get_run_datetime()}",
     retries=3,
     retry_delay_seconds=5,
+    cache_policy=cache_policies.NO_CACHE,
     description="Cleanup mariadb tables",
 )
 def cleanup_mariadb_tables(
@@ -56,8 +57,6 @@ def cleanup_mariadb_tables(
 
     logger.info(f"Deleted rows : {deleted_rows}")
 
-    # TODO t_alert_history 삭제 로직 추가
-
 
 @flow(
     name=MariaDBManager.Flows.MARIADB_CLEAN_FLOW_NAME,
@@ -67,7 +66,7 @@ def cleanup_mariadb_tables(
     description="Prefect agent module for clean up mariadb",
     timeout_seconds=5,
 )
-def mariadb_cleanup_flow() -> None:
+def mariadb_clean_flow() -> None:
     logger = get_run_logger()
 
     logger.info("Network: %s. ✅", node())
@@ -83,4 +82,4 @@ def mariadb_cleanup_flow() -> None:
 
 
 if __name__ == "__main__":
-    mariadb_cleanup_flow()
+    mariadb_clean_flow()

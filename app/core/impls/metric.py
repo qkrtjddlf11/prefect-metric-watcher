@@ -71,7 +71,7 @@ def sql_delete_evaluate_result_history(
 ) -> int:
     deleted_rows = (
         session.query(TEvaluateResultHistory)
-        .filter(TEvaluateResultHistory.timestamp < x_days_before)
+        .filter(TEvaluateResultHistory.reg_datetime < x_days_before)
         .delete()
     )
     session.commit()

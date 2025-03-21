@@ -180,11 +180,11 @@ class TEvaluateResultHistory:
         nullable=False,
         comment="Server id",
     )
-    timestamp = Column(
+    reg_datetime = Column(
         TIMESTAMP,
         nullable=False,
         server_default=func.current_timestamp(),
-        comment="Alert history timestamp",
+        comment="Evaluate result register datetime",
     )
 
 
