@@ -66,7 +66,7 @@ def cleanup_postgresql_tables(
         old_flow_run_ids = (
             session.query(FlowRun.id)
             .filter(
-                FlowRun.state_timestamp < x_days_before,
+                FlowRun.state_timestamp > x_days_before,
                 FlowRun.state_type == "COMPLETED",
             )
             .all()
@@ -91,10 +91,6 @@ def cleanup_postgresql_tables(
             logger.info("Deleted %s rows from %s", deleted_rows.rowcount, query.table)
 
         session.commit()
-
-        logger.info(
-            f"Deleted {len(flow_run_ids)} old flow_runs and related logs & artifacts, events"
-        )
 
 
 @flow(

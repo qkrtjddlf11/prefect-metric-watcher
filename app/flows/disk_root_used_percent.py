@@ -9,6 +9,7 @@ from platform import node, platform
 
 from prefect import cache_policies, context, flow, get_run_logger, task
 from prefect.runtime import flow_run
+from regex import D
 from requests import exceptions
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
@@ -19,18 +20,19 @@ from app.core.db.mariadb.connector import MariaDBConnector
 from app.core.define.base import Path
 from app.core.define.code import EvaluateResultType, EvaluateTargetType, MetricType
 from app.core.define.flows import MetricWatcher
-from app.core.define.tasks import CpuUsedPercent
+from app.core.define.tasks import DiskRootUsedPercent
 from app.core.evaluation.comparison_operator import OperatorMapping
-from app.core.schemas.influxdb.metric import CpuUsedPercentPoint
+from app.core.schemas.influxdb.metric import DiskRootUsedPercentPoint
 from app.core.schemas.mariadb.metric import EvaluateFlows, EvaluateResultHistory
 from app.utils.db import get_evaluate_flows, insert_evaluate_result_history
 from app.utils.time import create_basetime, get_run_datetime
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
-GET_CPU_USED_PERCENT_QUERY = """
-    SELECT time, server_id, node_id, (100 - usage_idle) as used_percent
-    FROM cpu 
+GET_DISK_ROOT_USED_PERCENT_QUERY = """
+    SELECT time, server_id, node_id, used_percent
+    FROM disk 
     WHERE time > now() - 2m AND time <= now() - 1m
+          AND path = '/'
     GROUP BY host limit 1
 """
 
@@ -54,16 +56,16 @@ def generate_flow_run_name() -> str:
 
 
 @task(
-    name=CpuUsedPercent.Tasks.COMPARE_CPU_USED_PERCENT_NAME,
-    task_run_name=f"{CpuUsedPercent.Tasks.COMPARE_CPU_USED_PERCENT_NAME}_{get_run_datetime()}",
+    name=DiskRootUsedPercent.Tasks.COMPARE_DISK_ROOT_USED_PERCENT_NAME,
+    task_run_name=f"{DiskRootUsedPercent.Tasks.COMPARE_DISK_ROOT_USED_PERCENT_NAME}_{get_run_datetime()}",
     retries=3,
     retry_delay_seconds=5,
     cache_policy=cache_policies.NO_CACHE,
-    description="Compare cpu used percent",
+    description="Compare disk root partition used percent",
 )
-def compare_cpu_used_percent(
+def compare_disk_root_used_percent(
     evaluate_flow: EvaluateFlows,
-    used_percent_points: list[CpuUsedPercentPoint],
+    used_percent_points: list[DiskRootUsedPercentPoint],
 ) -> list[EvaluateResultHistory]:
     evaluate_result_histories = [
         EvaluateResultHistory(
@@ -83,34 +85,34 @@ def compare_cpu_used_percent(
 
 
 @task(
-    name=CpuUsedPercent.Tasks.GET_CPU_POINTS_NAME,
-    task_run_name=f"{CpuUsedPercent.Tasks.GET_CPU_POINTS_NAME}_{get_run_datetime()}",
+    name=DiskRootUsedPercent.Tasks.GET_DISK_ROOT_POINTS_NAME,
+    task_run_name=f"{DiskRootUsedPercent.Tasks.GET_DISK_ROOT_POINTS_NAME}_{get_run_datetime()}",
     retries=3,
     retry_delay_seconds=5,
-    description="Get CPU metric from InfluxDB",
+    description="Get disk root metric from InfluxDB",
 )
-def get_cpu_points(
+def get_disk_root_points(
     logger: logging.Logger, influxdb_connector: InfluxDBConnector
-) -> list[CpuUsedPercentPoint]:
+) -> list[DiskRootUsedPercentPoint]:
     with influxdb_connector.get_resource() as conn:
         try:
-            results = conn.query(GET_CPU_USED_PERCENT_QUERY)
-            return [CpuUsedPercentPoint(**point) for point in results.get_points()]
+            results = conn.query(GET_DISK_ROOT_USED_PERCENT_QUERY)
+            return [DiskRootUsedPercentPoint(**point) for point in results.get_points()]
         except exceptions.ConnectionError as err:
             logger.error("Connection Error : %s", str(err))
             raise
 
 
 @flow(
-    name=MetricWatcher.Flows.CPU_USED_PERCENT_FLOW_NAME,
+    name=MetricWatcher.Flows.DISK_ROOT_USED_PERCENT_FLOW_NAME,
     flow_run_name=generate_flow_run_name,
     retries=3,
     retry_delay_seconds=5,
-    description="Prefect agent module for CPU usage",
+    description="Prefect agent module for disk root partition usage",
     timeout_seconds=5,
     # on_failure=[flow_failure_webhook],
 )
-def cpu_used_percent_flow() -> None:
+def disk_root_used_percent_flow() -> None:
     logger = get_run_logger()
 
     logger.info("Network: %s. ✅", node())
@@ -121,19 +123,21 @@ def cpu_used_percent_flow() -> None:
     mariadb_connector = MariaDBConnector(logger, **yaml_config.mariadb.model_dump())
     influxdb_connector = InfluxDBConnector(logger, **yaml_config.influxdb.model_dump())
 
-    used_percent_points = get_cpu_points.submit(logger, influxdb_connector).result()
+    used_percent_points = get_disk_root_points.submit(
+        logger, influxdb_connector
+    ).result()
 
     logger.info("used_percent_points: %s. ✅", used_percent_points)
 
     evaluate_flow = get_evaluate_flows(
         mariadb_connector,
-        MetricType.CPU_USED_PERCENT.value,
+        MetricType.DISK_ROOT_USED_PERCENT.value,
         EvaluateTargetType.COMMON.value,
     )
 
     logger.info("evaluate_flow: %s. ✅", evaluate_flow)
 
-    evaluate_result_histories = compare_cpu_used_percent.submit(
+    evaluate_result_histories = compare_disk_root_used_percent.submit(
         evaluate_flow, used_percent_points
     ).result()
 
@@ -143,4 +147,4 @@ def cpu_used_percent_flow() -> None:
 
 
 if __name__ == "__main__":
-    cpu_used_percent_flow()
+    disk_root_used_percent_flow()

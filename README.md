@@ -17,12 +17,13 @@ prefect work-queue create MARIADB_MANAGER_QUEUE -p MARIADB_MANAGER_POOL
 
 # Deploy your flow (You need to run project home)
 ```
-python3.11 app/deployments/hello_deployment.py
 python3.11 app/deployments/postgres_clean_deployment.py
 python3.11 app/deployments/mariadb_clean_deployment.py
+python3.11 app/deployments/cpu_used_percent_deployment.py
+python3.11 app/deployments/memory_used_percent_deployment.py
 ```
 
-# PostgreSQL Clean flow
+# Run flow in POSTGRESQL_MANAGER_POOL
 ```
 > vim /etc/systemd/system/prefect_postgres_clean_flow.service
 [Unit]
@@ -47,7 +48,7 @@ WantedBy=multi-user.target
 > systemctl start prefect_postgres_clean_flow
 ```
 
-# MariaDB clean flow
+# Run flow in MARIADB_MANAGER_POOL
 ```
 > vim /etc/systemd/system/prefect_mariadb_clean_flow.service
 [Unit]
@@ -72,9 +73,9 @@ WantedBy=multi-user.target
 > systemctl start prefect_mariadb_clean_flow
 ```
 
-# CPU used percent flow
+# Run flows in METRIC_WATCHER_POOL
 ```
-> vim /etc/systemd/system/prefect_cpu_used_percent_flow.service 
+> vim /etc/systemd/system/prefect_metric_watcher_flow.service 
 [Unit]
 Description=Prefect Cpu Used Percent Worker
 After=network.target
@@ -93,6 +94,6 @@ LimitNOFILE=1048576
 WantedBy=multi-user.target
 
 > systemctl daemon-reload
-> systemctl enable prefect_cpu_used_percent_flow
-> systemctl start prefect_cpu_used_percent_flow
+> systemctl enable prefect_metric_watcher_flow
+> systemctl start prefect_metric_watcher_flow
 ```

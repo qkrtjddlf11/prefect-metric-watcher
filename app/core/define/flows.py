@@ -6,7 +6,7 @@ class MetricWatcher:
         HELLO_FLOW_NAME: str = "hello"
         CPU_USED_PERCENT_FLOW_NAME: str = "cpu_used_percent"
         MEMORY_USED_PERCENT_FLOW_NAME: str = "memory_used_percent"
-        DISK_USED_PERCENT_ROOT_FLOW_NAME: str = "disk_used_percent_root"
+        DISK_ROOT_USED_PERCENT_FLOW_NAME: str = "disk_root_used_percent"
 
 
 class PostgreSQLManager:

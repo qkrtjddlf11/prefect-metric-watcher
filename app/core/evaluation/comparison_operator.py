@@ -2,7 +2,7 @@
 # coding: utf-8
 from abc import ABC, abstractmethod
 
-from common_modules.define.code import MethodOperatorType
+from app.core.define.code import ComparisonOperatorType
 
 
 class ComparisonOperator(ABC):
@@ -32,8 +32,8 @@ class LessThanOrEqual(ComparisonOperator):
 
 
 OperatorMapping = {
-    MethodOperatorType.LT.value: LessThan(),
-    MethodOperatorType.LTE.value: LessThanOrEqual(),
-    MethodOperatorType.GT.value: GreaterThan(),
-    MethodOperatorType.GTE.value: GreaterThanOrEqual(),
+    ComparisonOperatorType.LT.value: LessThan(),
+    ComparisonOperatorType.LTE.value: LessThanOrEqual(),
+    ComparisonOperatorType.GT.value: GreaterThan(),
+    ComparisonOperatorType.GTE.value: GreaterThanOrEqual(),
 }
