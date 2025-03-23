@@ -1,7 +1,6 @@
 # pylint: disable=C0114, C0115, C0116
 # coding: utf-8
 
-
 import logging
 import os
 import sys
@@ -9,7 +8,6 @@ from platform import node, platform
 
 from prefect import cache_policies, context, flow, get_run_logger, task
 from prefect.runtime import flow_run
-from regex import D
 from requests import exceptions
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
@@ -26,6 +24,7 @@ from app.core.schemas.influxdb.metric import DiskRootUsedPercentPoint
 from app.core.schemas.mariadb.metric import EvaluateFlows, EvaluateResultHistory
 from app.utils.db import get_evaluate_flows, insert_evaluate_result_history
 from app.utils.time import create_basetime, get_run_datetime
+from app.utils.webhook import flow_failure_webhook
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
 GET_DISK_ROOT_USED_PERCENT_QUERY = """
@@ -110,7 +109,7 @@ def get_disk_root_points(
     retry_delay_seconds=5,
     description="Prefect agent module for disk root partition usage",
     timeout_seconds=5,
-    # on_failure=[flow_failure_webhook],
+    on_failure=[flow_failure_webhook],
 )
 def disk_root_used_percent_flow() -> None:
     logger = get_run_logger()

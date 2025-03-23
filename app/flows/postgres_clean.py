@@ -1,9 +1,6 @@
 # pylint: disable=C0114, C0115, C0116
 # coding: utf-8
 
-# TODO
-# events, event_resources의 경우 신규로 생긴 테이블로 이벤트에 대한 기록을 한다.
-# flow 동작에 따라 데이터가 쌓이는 경우 해당 테이블 역시 삭제 쿼리를 넣어 정리 할 피필요가 힜다.
 import logging
 import os
 import sys
@@ -30,6 +27,7 @@ from app.core.define.prefect import Variables
 from app.core.define.tasks import PostgresClean
 from app.utils.prefect import get_before_days
 from app.utils.time import create_basetime, get_run_datetime
+from app.utils.webhook import flow_failure_webhook
 
 
 def generate_flow_run_name() -> str:
@@ -102,6 +100,7 @@ def cleanup_postgresql_tables(
                     We adopt a strict Vacuum policy to optimize disk space utilization for the table.
     """,
     timeout_seconds=60,
+    on_failure=[flow_failure_webhook],
 )
 def postgres_clean_flow() -> None:
     logger = get_run_logger()

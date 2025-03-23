@@ -1,3 +1,6 @@
+# pylint: disable=C0114, C0115, C0116
+# coding: utf-8
+
 from app.core.db.mariadb.connector import MariaDBConnector
 from app.core.impls.metric import (
     sql_fetch_evaluate_flows,

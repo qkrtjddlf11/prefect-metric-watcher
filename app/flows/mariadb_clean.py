@@ -20,6 +20,7 @@ from app.core.define.tasks import MariadbClean
 from app.core.impls.metric import sql_delete_evaluate_result_history
 from app.utils.prefect import get_before_days
 from app.utils.time import create_basetime, get_run_datetime
+from app.utils.webhook import flow_failure_webhook
 
 
 def generate_flow_run_name() -> str:
@@ -65,6 +66,7 @@ def cleanup_mariadb_tables(
     retry_delay_seconds=5,
     description="Prefect agent module for clean up mariadb",
     timeout_seconds=5,
+    on_failure=[flow_failure_webhook],
 )
 def mariadb_clean_flow() -> None:
     logger = get_run_logger()

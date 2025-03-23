@@ -1,3 +1,7 @@
+# pylint: disable=C0114, C0115, C0116
+# coding: utf-8
+
+
 class MetricWatcher:
     POOL_NAME: str = "METRIC_WATCHER_POOL"
     QUEUE_NAME: str = "METRIC_WATCHER_QUEUE"

@@ -1,3 +1,7 @@
+# pylint: disable=C0114, C0115, C0116
+# coding: utf-8
+
+
 class Blocks:
     class S3Bucket:
         MINIO_STORAGE_CODE_NAME = "minio-storage-code"

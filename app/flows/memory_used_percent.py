@@ -1,7 +1,6 @@
 # pylint: disable=C0114, C0115, C0116
 # coding: utf-8
 
-
 import logging
 import os
 import sys
@@ -25,6 +24,7 @@ from app.core.schemas.influxdb.metric import MemoryUsedPercentPoint
 from app.core.schemas.mariadb.metric import EvaluateFlows, EvaluateResultHistory
 from app.utils.db import get_evaluate_flows, insert_evaluate_result_history
 from app.utils.time import create_basetime, get_run_datetime
+from app.utils.webhook import flow_failure_webhook
 
 # Lazy Query 수행 (1분 이내로 데이터 입수가 가능하지 않을 수도 있으므로)
 GET_MEMORY_USED_PERCENT_QUERY = """
@@ -108,7 +108,7 @@ def get_memory_points(
     retry_delay_seconds=5,
     description="Prefect agent module for Memory usage",
     timeout_seconds=5,
-    # on_failure=[flow_failure_webhook],
+    on_failure=[flow_failure_webhook],
 )
 def memory_used_percent_flow() -> None:
     logger = get_run_logger()
