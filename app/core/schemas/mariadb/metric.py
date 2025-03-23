@@ -43,3 +43,12 @@ class EvaluateResultHistory(BaseModel):
     result_value: float = Field(..., description="Result value")
     node_id: str = Field(..., description="Node ID")
     server_id: str = Field(..., description="Server ID")
+
+    def __str__(self) -> str:
+        return (
+            f"EvaluateResultHistory(evaluate_flow_seq={self.evaluate_flow_seq}, "
+            + f"evaluate_result_type_seq={self.evaluate_result_type_seq}, "
+            + f"result_value={self.result_value}, "
+            + f"node_id={self.node_id}, "
+            + f"server_id={self.server_id})"
+        )
